@@ -1,11 +1,10 @@
 import dotenv from 'dotenv';
 import {z} from "zod/v4";
 import {envSchema} from "../schemas/env.schemas";
-import {ConfigType, BCryptConfigType} from "./types/config.types";
+import {ConfigType} from "./types/config.types";
 
 dotenv.config();
 
-//TODO Use logger instead of console
 const _env = envSchema.safeParse(process.env);
 if (!_env.success) {
     console.error("Invalid environment variables:");
@@ -14,9 +13,8 @@ if (!_env.success) {
 }
 
 const env = _env.data;
-console.log(`Environment variables: ${env}`);
 
-export const config: ConfigType = {
+export const env_config: ConfigType = {
     NODE_ENV: env.NODE_ENV,
     PORT: env.PORT,
     SALT_ROUNDS: env.SALT_ROUNDS,
@@ -35,4 +33,4 @@ export const config: ConfigType = {
     MONGODB_DATABASE: env.MONGODB_DATABASE,
 }
 
-export default config;
+export default env_config;
