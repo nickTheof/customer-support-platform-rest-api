@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodType } from "zod";
 
-const validateBody = <T>(schema: ZodType<T, any, any>) => (
+export const validateBody = <T>(schema: ZodType<T, any, any>) => (
     req: Request,
     res: Response,
     next: NextFunction
@@ -14,7 +14,7 @@ const validateBody = <T>(schema: ZodType<T, any, any>) => (
     }
 };
 
-const validateQuery = <T>(schema: ZodType<T, any, any>) => (
+export const validateQuery = <T>(schema: ZodType<T, any, any>) => (
     req: Request,
     res: Response,
     next: NextFunction
@@ -27,7 +27,7 @@ const validateQuery = <T>(schema: ZodType<T, any, any>) => (
     }
 };
 
-const validateParams = <T>(schema: ZodType<T, any, any>) => (
+export const validateParams = <T>(schema: ZodType<T, any, any>) => (
     req: Request,
     res: Response,
     next: NextFunction
