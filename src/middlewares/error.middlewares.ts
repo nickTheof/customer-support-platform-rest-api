@@ -30,80 +30,93 @@ const errorHandler = (
     _next: NextFunction
 ) => {
     if (err instanceof AppObjectNotFoundException) {
-        return sendAppErrorResponse(err, 404, res);
+        sendAppErrorResponse(err, 404, res);
+        return;
     }
     if (err instanceof AppObjectAlreadyExistsException) {
-        return sendAppErrorResponse(err, 409, res);
+        sendAppErrorResponse(err, 409, res);
+        return;
     }
     if (err instanceof AppInvalidArgumentException) {
-        return sendAppErrorResponse(err, 400, res);
+        sendAppErrorResponse(err, 400, res);
+        return;
     }
     if (err instanceof AppNotAuthorizedException) {
-        return sendAppErrorResponse(err, 401, res);
+        sendAppErrorResponse(err, 401, res);
+        return;
     }
     if (err instanceof AppForbiddenException) {
-        return sendAppErrorResponse(err, 403, res);
+        sendAppErrorResponse(err, 403, res);
+        return;
     }
     if (err instanceof AppServerException) {
         logger.error(`[${err.getCode()}] ${err.message}`, { stack: err.stack });
-        return sendAppErrorResponse(err, 500, res);
+        sendAppErrorResponse(err, 500, res);
+        return;
     }
 
     // Zod validation error
     if (err instanceof AppValidationException) {
         const {formErrors, fieldErrors} = z.flattenError(err.zodError);
         logger.warn(`[ValidationError] ${err.message}`, { fieldErrors, formErrors });
-        return res.status(400).json({
+        res.status(400).json({
             code: err.code,
             message: err.message,
             fieldErrors,
             formErrors
             });
+        return;
     }
 
     // Catch-all for app generic exception as fallback for future enhancement in app generic exceptions
     if (err instanceof AppGenericException) {
         logger.error(`[${err.getCode()}] ${err.message}`, { stack: err.stack });
-        return sendAppErrorResponse(err, 500, res);
+        sendAppErrorResponse(err, 500, res);
+        return;
     }
 
     //Handle MongoDB Errors
     if (err instanceof MongoServerError) {
         if (err.code === 11000) {
-            return sendAppErrorResponse(new AppObjectAlreadyExistsException("Object", "Duplicate value for unique field"), 409, res)
+            sendAppErrorResponse(new AppObjectAlreadyExistsException("Object", "Duplicate value for unique field"), 409, res)
+            return;
         }
     }
     if (err instanceof MongoNetworkError || err instanceof MongoNetworkTimeoutError) {
-        return sendAppErrorResponse(new AppServerException("MongoDbServiceUnavailable", "Error connecting to mongo db server"), 503, res)
+        sendAppErrorResponse(new AppServerException("MongoDbServiceUnavailable", "Error connecting to mongo db server"), 503, res)
+        return;
     }
     //Handle Mongoose Errors
     if (err instanceof mongoose.Error.ValidationError) {
-        return sendAppErrorResponse(new AppInvalidArgumentException(
+        sendAppErrorResponse(new AppInvalidArgumentException(
             "Object",
             "Validation failed for one or more fields"
         ), 400, res)
+        return;
     }
 
     if (err instanceof mongoose.Error.CastError) {
-        return sendAppErrorResponse(new AppInvalidArgumentException(
+        sendAppErrorResponse(new AppInvalidArgumentException(
             "Object",
             "Invalid identifier or value for field"
         ), 400, res)
+        return;
     }
 
 
     // Standard JS Error
     if (err instanceof Error) {
         logger.error(`[InternalServerError] ${err.message}`, { stack: err.stack });
-        return res.status(500).json({
+        res.status(500).json({
             code: "InternalServerError",
             message: err.message
         });
+        return;
     }
 
     // Fallback for unknown errors
     logger.error(`[UnknownError]`, { err });
-    return res.status(500).json({
+    res.status(500).json({
         code: "InternalServerError",
         message: "An unknown error occurred"
     });
