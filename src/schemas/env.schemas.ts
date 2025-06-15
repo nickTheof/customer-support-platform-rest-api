@@ -1,7 +1,10 @@
 import {z} from "zod/v4";
 
 export const bcryptSchema = z.object({
-    SALT_ROUNDS: z.string().regex(/^\d+$/).default("11").transform(Number)
+    SALT_ROUNDS: z.string().regex(/^\d+$/).default("11").transform(Number).refine(
+        (val) => val >= 8 && val <= 15,
+        { message: "SALT_ROUNDS must be between 8 and 15" }
+    )
 })
 
 export const corsSchema = z.object({
