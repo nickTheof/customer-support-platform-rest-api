@@ -25,9 +25,9 @@ const sendAppErrorResponse = (err: AppGenericException, code: number, res: Respo
 
 const errorHandler = (
     err: unknown,
-    req: Request,
+    _req: Request,
     res: Response,
-    next: NextFunction
+    _next: NextFunction
 ) => {
     if (err instanceof AppObjectNotFoundException) {
         return sendAppErrorResponse(err, 404, res);
