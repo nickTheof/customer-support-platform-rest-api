@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodType } from "zod/v4";
+import {ZodError, ZodType} from "zod/v4";
+import {AppValidationException} from "../core/exceptions/app.exceptions";
+import {ResourceAction} from "../core/interfaces/role.interfaces";
 
-export const validateBody = <T>(schema: ZodType<T, any, any>) => (
+export const validateBody = <T>(schema: ZodType<T, any, any>, model: ResourceAction) => (
     req: Request,
     res: Response,
     next: NextFunction
@@ -10,7 +12,7 @@ export const validateBody = <T>(schema: ZodType<T, any, any>) => (
         res.locals.validatedBody = schema.parse(req.body);
         next();
     } catch (err) {
-        next(err);
+        next(new AppValidationException(model, err as ZodError));
     }
 };
 
@@ -23,7 +25,7 @@ export const validateQuery = <T>(schema: ZodType<T, any, any>) => (
         res.locals.validatedQuery = schema.parse(req.query);
         next();
     } catch (err) {
-        next(err);
+        next(new AppValidationException("Query", err as ZodError));
     }
 };
 
@@ -36,6 +38,6 @@ export const validateParams = <T>(schema: ZodType<T, any, any>) => (
         res.locals.validatedParams = schema.parse(req.params);
         next();
     } catch (err) {
-        next(err);
+        next(new AppValidationException("Params", err as ZodError));
     }
 };
