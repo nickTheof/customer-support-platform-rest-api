@@ -7,9 +7,12 @@
     "env:dev": "cpy .env.dev . --rename=.env",
     "env:test": "cpy .env.test . --rename=.env",
     "env:prod": "cpy .env.prod . --rename=.env",
-    "build": "npm run env:prod && tsc",
-    "start": "npm run build && node dist/server.js",
-    "start:dev": "npm run env:dev && tsc && node dist/server.js"
+    "build": "tsc",
+    "postbuild": "node dist/seed/roles.seed.js",
+    "prestart": "npm run env:prod && npm run build",
+    "start": "node dist/server.js",
+    "dev": "npm run env:dev && tsc && node dist/seed/roles.seed.js && node dist/server.js",
+    "test": "npm run env:test && tsc && node dist/seed/roles.seed.js && jest"
   },
   "dependencies": {
     "@types/multer": "^1.4.13",
