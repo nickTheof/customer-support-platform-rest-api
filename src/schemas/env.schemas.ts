@@ -44,4 +44,5 @@ export const envSchema = z.object({
     ...mailerSchema.shape,
     NODE_ENV: z.enum(['dev', 'prod', 'test']).default('dev'),
     PORT: z.string().regex(/^\d+$/).default("3000").transform(Number),
+    API_VERSION: z.string().nonempty().default("v1"),
 })

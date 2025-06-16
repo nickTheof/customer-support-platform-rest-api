@@ -17,6 +17,7 @@ const env = _env.data;
 export const env_config: ConfigType = {
     NODE_ENV: env.NODE_ENV,
     PORT: env.PORT,
+    API_VERSION: env.API_VERSION,
     SALT_ROUNDS: env.SALT_ROUNDS,
     ALLOWED_ORIGINS: env.ALLOWED_ORIGINS,
     JWT_SECRET: env.JWT_SECRET,

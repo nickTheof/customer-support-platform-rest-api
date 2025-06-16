@@ -38,7 +38,7 @@ app.use(
 );
 
 app.use("/", limiter);
-app.use("/api", heathRouter)
+app.use(`/api/${env_config.API_VERSION}`, heathRouter)
 
 app.all("/{*splat}", (req: Request, _res: Response, next) => {
     next(new AppObjectNotFoundException(`Uri`, `Can't find the ${req.originalUrl} on the server`));
