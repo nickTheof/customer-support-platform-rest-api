@@ -32,7 +32,7 @@ export const ProfileInsertDTOSchema = z.object({
  */
 export const UserRegisterDTOSchema = z.object({
     email: z.email("Email must be a valid email address"),
-    vat: z.string().regex(/^\d{10,}$/, "Vat must be at least 10 digits long"),
+    vat: z.string().regex(/^\d{9,}$/, "Vat must be at least 9 digits long"),
     password: z.string().min(8).refine((val) => /[a-z]/.test(val), {
         message: 'Password must contain lowercase',
     }).refine((val) => /[A-Z]/.test(val), {

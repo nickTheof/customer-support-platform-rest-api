@@ -58,7 +58,7 @@ export class AppValidationException extends Error {
     public readonly zodError: ZodError;
     public readonly code = "ValidationError";
     constructor(message: string, zodError: ZodError) {
-        super(message);
+        super(message + "ValidationException");
         this.name = new.target.name;
         this.zodError = zodError;
         Object.setPrototypeOf(this, new.target.prototype);
