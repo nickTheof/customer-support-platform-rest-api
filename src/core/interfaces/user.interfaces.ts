@@ -19,7 +19,7 @@ export interface Profile {
     firstname?: string;
     lastname?: string;
     avatar?: string;
-    phoneNumber?: Phone[];
+    phones?: Phone[];
     address?: Address;
 }
 
@@ -32,7 +32,7 @@ export interface IUserDocument extends Document {
     loginConsecutiveFailures: number;
     passwordChangedAt: Date;
     passwordResetToken?: string;
-    passwordResetExpires?: Date;
+    passwordResetTokenExpires?: Date;
     role: Types.ObjectId | IRoleDocument;
     createdAt: Date;
     updatedAt: Date;
