@@ -3,7 +3,7 @@ import {ZodError, ZodType} from "zod/v4";
 import {AppValidationException} from "../core/exceptions/app.exceptions";
 import {ResourceAction} from "../core/interfaces/role.interfaces";
 
-export const validateBody = <T>(schema: ZodType<T, any, any>, model: ResourceAction) => (
+export const validateBody = <T>(schema: ZodType<T, any, any>, model: ResourceAction | string) => (
     req: Request,
     res: Response,
     next: NextFunction
