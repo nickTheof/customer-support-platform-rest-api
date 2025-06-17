@@ -7,6 +7,7 @@ import limiter from "./middlewares/limiter.middleware";
 import {AppObjectNotFoundException} from "./core/exceptions/app.exceptions";
 import errorHandler from "./middlewares/error.middlewares";
 import heathRouter from "./routes/healthcheck.routes";
+import authRouter from "./routes/auth.routes";
 
 const app = express();
 // Use helmet for setting security headers
@@ -39,6 +40,7 @@ app.use(
 
 app.use("/", limiter);
 app.use(`/api/${env_config.API_VERSION}`, heathRouter)
+app.use(`/api/${env_config.API_VERSION}/auth`, authRouter)
 
 app.all("/{*splat}", (req: Request, _res: Response, next) => {
     next(new AppObjectNotFoundException(`Uri`, `Can't find the ${req.originalUrl} on the server`));
