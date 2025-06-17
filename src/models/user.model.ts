@@ -1,4 +1,4 @@
-import {model, Schema} from "mongoose";
+import {model, Query, Schema} from "mongoose";
 import {Address, IUserDocument, Phone, Profile} from "../core/interfaces/user.interfaces";
 import {ANNOUNCEMENT_MODEL_NAME, ROLE_MODEL_NAME, TICKET_MODEL_NAME} from "../core/interfaces/role.interfaces";
 
@@ -35,12 +35,23 @@ export const UserSchema = new Schema<IUserDocument>({
     passwordChangedAt: {type: Date, required: true},
     passwordResetToken: {type: String},
     passwordResetTokenExpires: {type: Date},
+    verificationToken: {type: String},
+    verificationTokenExpires: {type: Date},
+    enableUserToken: {type: String},
+    enableUserTokenExpires: {type: Date},
     role: {type: Schema.Types.ObjectId, ref: ROLE_MODEL_NAME, required: true},
     profile: {type: ProfileSchema, default: null},
     tickets: {type: [Schema.Types.ObjectId], ref: TICKET_MODEL_NAME, default: []},
     announcements: {type: [Schema.Types.ObjectId], ref: ANNOUNCEMENT_MODEL_NAME, default: []},
     }, {
-    timestamps: true
+    timestamps: true,
+    versionKey: false,
 })
+
+// Auto-populate role on all find queries
+UserSchema.pre(/^find/, function(this: Query<any, IUserDocument>, next) {
+    this.populate('role');
+    next();
+});
 
 export const User = model<IUserDocument>("User", UserSchema);
