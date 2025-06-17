@@ -26,6 +26,7 @@ export const RoleSchema = new Schema<IRoleDocument>({
         type: [AuthoritySchema],
         default: []
     },
-}, {timestamps: true});
+}, {timestamps: true, versionKey: false});
+
 
 export const Role = model<IRoleDocument>(ROLE_MODEL_NAME, RoleSchema);

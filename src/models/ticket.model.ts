@@ -24,6 +24,7 @@ const TicketSchema = new Schema<ITicketDocument>({
     }
 }, {
     timestamps: true,
+    versionKey: false,
 })
 
 

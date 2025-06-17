@@ -10,7 +10,7 @@ const AnnouncementSchema = new Schema<IAnnouncementDocument>(
         authorId: { type: Schema.Types.ObjectId, ref: USER_MODEL_NAME, required: true },
         viewerStatus: { type: [Schema.Types.ObjectId], ref: USER_MODEL_NAME, default: [] },
     },
-    { timestamps: true }
+    { timestamps: true, versionKey: false}
 );
 
 export const Announcement = model<IAnnouncementDocument>(ANNOUNCEMENT_MODEL_NAME, AnnouncementSchema);

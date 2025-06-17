@@ -8,6 +8,6 @@ const AttachmentSchema = new Schema<IAttachmentDocument>({
     filePath: {type: String, required: true},
     contentType: {type: String, required: true},
     fileExtension: {type: String, required: true},
-}, {timestamps: true});
+}, {timestamps: true, versionKey: false});
 
 export const Attachment = model<IAttachmentDocument>(ATTACHMENT_MODEL_NAME, AttachmentSchema);
