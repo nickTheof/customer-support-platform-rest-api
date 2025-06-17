@@ -2,6 +2,8 @@ import {Document, Types} from 'mongoose';
 import {ITicketDocument} from "./ticket.interfaces";
 import {IAnnouncementDocument} from "./announcement.interfaces";
 import {IRoleDocument} from "./role.interfaces";
+import {RoleReadOnlyDTO} from "../types/zod-model.types";
+import {JwtPayload} from "jsonwebtoken";
 
 export interface Phone {
     type: string;
@@ -23,7 +25,7 @@ export interface Profile {
     address?: Address;
 }
 
-export interface IUserDocument extends Document {
+export interface IUserDocument extends Document<Types.ObjectId> {
     email: string;
     vat: string;
     password: string;
@@ -33,10 +35,20 @@ export interface IUserDocument extends Document {
     passwordChangedAt: Date;
     passwordResetToken?: string;
     passwordResetTokenExpires?: Date;
+    verificationToken?: string;
+    verificationTokenExpires?: Date;
+    enableUserToken?: string;
+    enableUserTokenExpires?: Date;
     role: Types.ObjectId | IRoleDocument;
     createdAt: Date;
     updatedAt: Date;
     profile?: Profile;
     tickets?: Types.ObjectId[] | ITicketDocument[];
     announcements?: Types.ObjectId[] | IAnnouncementDocument[];
+}
+
+export interface UserTokenPayload {
+    userId: string;
+    email: string;
+    role: RoleReadOnlyDTO
 }
