@@ -45,4 +45,7 @@ export const envSchema = z.object({
     NODE_ENV: z.enum(['dev', 'prod', 'test']).default('dev'),
     PORT: z.string().regex(/^\d+$/).default("3000").transform(Number),
     API_VERSION: z.string().nonempty().default("v1"),
+    FRONTEND_VERIFICATION_URL:z.string().nonempty(),
+    FRONTEND_PASSWORD_RECOVERY_URL: z.string().nonempty(),
+    FRONTEND_UNLOCK_ACCOUNT_URL: z.string().nonempty()
 })
