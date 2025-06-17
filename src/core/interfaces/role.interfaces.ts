@@ -1,4 +1,4 @@
-import {Document} from "mongoose";
+import {Document, Types} from "mongoose";
 
 export const ROLE_MODEL_NAME = "Role"
 export const ANNOUNCEMENT_MODEL_NAME = "Announcement";
@@ -16,8 +16,7 @@ export interface Authority {
     actions: AuthorityAction[];
 }
 
-
-export interface IRoleDocument extends Document {
+export interface IRoleDocument extends Document<Types.ObjectId> {
     name: string;
     authorities: Authority[];
     createdAt: Date;

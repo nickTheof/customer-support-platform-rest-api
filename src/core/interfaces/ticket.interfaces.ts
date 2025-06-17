@@ -10,7 +10,7 @@ export interface Comment {
     updatedAt: Date;
 }
 
-export interface ITicketDocument extends Document {
+export interface ITicketDocument extends Document<Types.ObjectId> {
     title: string;
     description: string;
     attachments?: Types.ObjectId[] | IAttachmentDocument[];

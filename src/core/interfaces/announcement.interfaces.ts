@@ -2,8 +2,7 @@ import {Document, Types} from "mongoose";
 import {IAttachmentDocument} from "./attachment.interfaces";
 import {IUserDocument} from "./user.interfaces";
 
-
-export interface IAnnouncementDocument extends Document {
+export interface IAnnouncementDocument extends Document<Types.ObjectId> {
     title: string;
     description: string;
     attachments?: Types.ObjectId[] | IAttachmentDocument[];
