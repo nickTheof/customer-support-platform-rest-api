@@ -3,7 +3,6 @@ import {ITicketDocument} from "./ticket.interfaces";
 import {IAnnouncementDocument} from "./announcement.interfaces";
 import {IRoleDocument} from "./role.interfaces";
 import {RoleReadOnlyDTO} from "../types/zod-model.types";
-import {JwtPayload} from "jsonwebtoken";
 
 export interface Phone {
     type: string;
