@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Role } from "../models/role.model";
-import { AUTHORITY_ACTIONS, RESOURCES } from "../core/interfaces/role.interfaces";
+import {AUTHORITY_ACTIONS, IRoleDocument, RESOURCES} from "../core/interfaces/role.interfaces";
 import env_config from "../core/env_config";
 import logger from "../core/utils/logger";
 
@@ -35,12 +35,13 @@ const roles = [
 
 async function seedRoles() {
     for (const roleData of roles) {
-        // Upsert to avoid duplicates
-        await Role.updateOne(
-            { name: roleData.name },
-            { $set: roleData },
-            { upsert: true }
-        );
+        let doc = await Role.findOne<IRoleDocument>({name: roleData.name})
+        if (!doc) {
+            await Role.create({
+                name: roleData.name,
+                authorities: roleData.authorities,
+            })
+        }
         logger.info(`Seeded role: ${roleData.name}`);
     }
 }
