@@ -7,6 +7,8 @@ export const AuthorityInsertDTOSchema = z.object({
 });
 
 export const RoleInsertDTOSchema = z.object({
-    name: z.string().min(1, "Name is required"),
+    name: z.string().nonempty(),
     authorities: z.array(AuthorityInsertDTOSchema)
 })
+
+export const RoleReadOnlyDTOSchema = RoleInsertDTOSchema.extend({});

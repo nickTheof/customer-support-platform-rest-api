@@ -1,11 +1,23 @@
 import {z} from "zod/v4";
 import {Types} from "mongoose";
+import {RoleReadOnlyDTOSchema} from "./role.schemas";
 
 // Reusable ObjectId validator
 export const objectIdSchema = z.string().refine(
     (val) => Types.ObjectId.isValid(val),
     { message: "Invalid ObjectId" }
 );
+
+// Reusable Password validator
+export const passwordSchema = z.string().min(8).refine((val) => /[a-z]/.test(val), {
+    message: 'Password must contain lowercase',
+}).refine((val) => /[A-Z]/.test(val), {
+    message: 'Password must contain uppercase',
+}).refine((val) => /\d/.test(val), {
+    message: 'Password must contain number',
+}).refine((val) => /[!@#$%^&*]/.test(val), {
+    message: 'Password must contain special character',
+});
 
 export const PhoneInsertDTOSchema = z.object({
     type: z.string().min(1, "Phone type is required"),
@@ -33,15 +45,7 @@ export const ProfileInsertDTOSchema = z.object({
 export const UserRegisterDTOSchema = z.object({
     email: z.email("Email must be a valid email address"),
     vat: z.string().regex(/^\d{9,}$/, "Vat must be at least 9 digits long"),
-    password: z.string().min(8).refine((val) => /[a-z]/.test(val), {
-        message: 'Password must contain lowercase',
-    }).refine((val) => /[A-Z]/.test(val), {
-        message: 'Password must contain uppercase',
-    }).refine((val) => /\d/.test(val), {
-        message: 'Password must contain number',
-    }).refine((val) => /[!@#$%^&*]/.test(val), {
-        message: 'Password must contain special character',
-    }),
+    password: passwordSchema,
     profile: ProfileInsertDTOSchema.optional(),
 })
 
@@ -50,4 +54,40 @@ export const UserRegisterDTOSchema = z.object({
  */
 export const UserInsertDTOSchema = UserRegisterDTOSchema.extend({
     role: objectIdSchema
+})
+
+export const PasswordRecoveryPathSchema = z.object({
+    email: z.email("Email must be a valid email address").nonempty("Email is required"),
+})
+
+export const RequestUnlockPathSchema = PasswordRecoveryPathSchema.extend({})
+
+export const UserLoginDTOSchema = PasswordRecoveryPathSchema.extend({
+    password: passwordSchema
+})
+
+export const VerifyAccountDTOSchema = z.object({
+    token: z.string().nonempty("Token is required"),
+    email: z.email("Email is required").nonempty("Email is required"),
+})
+
+export const UnlockAccountDTOSchema = VerifyAccountDTOSchema.extend({});
+
+export const ResetPasswordDTOSchema = VerifyAccountDTOSchema.extend({
+    newPassword: passwordSchema
+})
+
+export const BaseUserReadOnlyDTOSchema = z.object({
+    _id: z.string().nonempty(),
+    email:z.string().nonempty(),
+    enabled:z.boolean(),
+    verified:z.boolean(),
+})
+
+export const BaseUserReadOnlyDTOSchemaWithRole = BaseUserReadOnlyDTOSchema.extend({
+    role: RoleReadOnlyDTOSchema
+})
+
+export const UserReadOnlyDTOSchemaWithVerificationToken = BaseUserReadOnlyDTOSchema.extend({
+    verificationToken: z.string().nonempty()
 })
