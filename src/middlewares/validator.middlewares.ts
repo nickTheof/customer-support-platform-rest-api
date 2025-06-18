@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import {ZodError, ZodType} from "zod/v4";
+import {z, ZodError, ZodType} from "zod/v4";
 import {AppValidationException} from "../core/exceptions/app.exceptions";
 import {ResourceAction} from "../core/interfaces/role.interfaces";
 
@@ -9,7 +9,15 @@ export const validateBody = <T>(schema: ZodType<T, any, any>, model: ResourceAct
     next: NextFunction
 ) => {
     try {
-        res.locals.validatedBody = schema.parse(req.body);
+        // Handle undefined body by providing empty object
+        const input = req.body ?? {};
+        const result = schema.safeParse(input);
+
+        if (!result.success) {
+            throw result.error;
+        }
+
+        res.locals.validatedBody = result.data as z.infer<T>;
         next();
     } catch (err) {
         next(new AppValidationException(model, err as ZodError));

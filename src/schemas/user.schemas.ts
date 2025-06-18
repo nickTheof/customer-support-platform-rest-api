@@ -119,11 +119,11 @@ export const UpdateUserRoleDTOSchema = z.object({
 }).strict()
 
 export const FilterPaginationUserSchema = z.object({
-    page: z.number().min(0).default(0),
-    pageSize: z.number().min(1).default(10),
-    email: z.string().default(""),
-    vat: z.string().default(""),
-    enabled:z.boolean().default(true),
-    verified:z.boolean().default(true),
-    role: z.array(z.string()).default([]),
+    page: z.number().min(0).optional().default(0),
+    pageSize: z.number().min(1).optional().default(10),
+    email: z.string().optional().default(""),
+    vat: z.string().optional().default(""),
+    enabled:z.boolean().optional().default(true),
+    verified:z.boolean().optional().default(true),
+    role: z.array(z.string()).optional().default([]),
 })
