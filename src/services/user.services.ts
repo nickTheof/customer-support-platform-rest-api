@@ -5,13 +5,14 @@ import {User} from "../models/user.model";
 import {Role} from "../models/role.model";
 import {AppObjectAlreadyExistsException, AppObjectNotFoundException,} from "../core/exceptions/app.exceptions";
 import {
-    BaseUserReadOnlyDTOWithVerification, UpdateUserRoleDTO,
+    BaseUserReadOnlyDTOWithVerification, FilterPaginationUsersDTO, UpdateUserRoleDTO,
     UserInsertDTO, UserPatchDTO,
     UserReadOnlyDTO,
     UserUpdateDTO
 } from "../core/types/zod-model.types";
-import {IUserDocument} from "../core/interfaces/user.interfaces";
+import {IUserDocument, UserAggregationResult} from "../core/interfaces/user.interfaces";
 import {IRoleDocument} from "../core/interfaces/role.interfaces";
+import {PipelineStage} from "mongoose";
 
 /**
  * Fetches all users from the database.
@@ -20,6 +21,25 @@ import {IRoleDocument} from "../core/interfaces/role.interfaces";
 const getAll = async(): Promise<UserReadOnlyDTO[]> => {
     const users = await User.find<IUserDocument>();
     return users.map((user) => mapper.mapUserToReadOnlyDTO(user));
+}
+
+
+/**
+ * Retrieves users from the database with support for advanced filtering and pagination.
+ * Filters include: email, VAT, enabled status, verified status, and user roles.
+ * Uses MongoDB aggregation pipeline for efficient filtering and counting.
+ * returns Paginated result set and total user count.
+ */
+const getAllFilteredPaginated = async(filters: FilterPaginationUsersDTO) => {
+    const pipeline = getUserAggregationWithCount(filters);
+    const result = await User.aggregate<UserAggregationResult>(pipeline).exec();
+    const data = result[0]?.data || [];
+    const total = result[0]?.totalCount[0]?.count || 0;
+    const userReadOnlyDTOs = data.map((user) => mapper.mapUserToReadOnlyDTO(user));
+    return {
+        totalCount: total,
+        data: userReadOnlyDTOs
+    }
 }
 
 /**
@@ -190,8 +210,73 @@ const deleteUserByEmail = async (email: string) => {
     logger.info(`User with email ${email} deleted`);
 }
 
+
+/**
+ * Builds the MongoDB aggregation pipeline for paginated and filtered user queries.
+ * Supports filtering by email, VAT, enabled/verified status, and roles.
+ * Includes $lookup for role population if needed.
+ *
+ * @param {FilterPaginationUsersDTO} filters - Filters and pagination options.
+ * @returns {PipelineStage[]} MongoDB aggregation pipeline.
+ */
+export const getUserAggregationWithCount = (filters: FilterPaginationUsersDTO): PipelineStage[] => {
+    const matchStage: Record<string, any> = {};
+
+    if (filters.email) {
+        matchStage["email"] = { $regex: `^${filters.email}`, $options: "i" };
+    }
+    if (filters.vat) {
+        matchStage["vat"] = { $regex: `^${filters.vat}`, $options: "i" };
+    }
+    matchStage["enabled"] = filters.enabled;
+    matchStage["verified"] = filters.verified;
+    const filterByRole = filters.role.length > 0;
+
+    const basePipeline: PipelineStage[] = [];
+
+    if (filterByRole) {
+        basePipeline.push(
+            {
+                $lookup: {
+                    from: "roles",
+                    localField: "role",
+                    foreignField: "_id",
+                    as: "role",
+                },
+            },
+            { $unwind: "$role" },
+            {
+                $match: {
+                    ...matchStage,
+                    "role.name": { $in: filters.role },
+                },
+            }
+        );
+    } else {
+        basePipeline.push({ $match: matchStage });
+    }
+
+    const skip = filters.page * filters.pageSize;
+
+    return [
+        ...basePipeline,
+        {
+            $facet: {
+                data: [
+                    { $skip: skip },
+                    { $limit: filters.pageSize },
+                ],
+                totalCount: [
+                    { $count: "count" }
+                ],
+            },
+        },
+    ];
+};
+
 export default {
     getAll,
+    getAllFilteredPaginated,
     getById,
     isValidEmail,
     isValidVat,

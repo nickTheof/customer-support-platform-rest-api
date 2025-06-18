@@ -11,3 +11,8 @@ export interface PaginatedResponse<T> {
     totalPages: number;
     numberOfElements: number;
 }
+
+export interface AggregationResult<T> {
+    data: T[];
+    totalCount: { count: number }[];
+}

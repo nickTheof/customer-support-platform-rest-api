@@ -3,6 +3,7 @@ import {verifyResourceAuthority, verifyToken} from "../middlewares/auth.middlewa
 import userController from "../controllers/user.controllers";
 import {validateBody, validateParams} from "../middlewares/validator.middlewares";
 import {
+    FilterPaginationUserSchema,
     UpdateUserRoleDTOSchema,
     UserIdPathSchema,
     UserInsertDTOSchema,
@@ -11,7 +12,6 @@ import {
 } from "../schemas/user.schemas";
 
 const router = Router();
-
 router.route("/")
     .all(verifyToken)
     .get(
@@ -22,6 +22,12 @@ router.route("/")
         verifyResourceAuthority("User", "CREATE"),
         validateBody(UserInsertDTOSchema, "User"),
         userController.createUser
+    );
+router.post("/filtered",
+    verifyToken,
+    verifyResourceAuthority("User", "READ"),
+    validateBody(FilterPaginationUserSchema, "User"),
+    userController.getFilteredPaginatedUsers
     );
 
 router.route("/:id")

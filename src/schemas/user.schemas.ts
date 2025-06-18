@@ -117,3 +117,13 @@ export const UserPatchDTOSchema = UserUpdateDTOSchema.partial().refine(
 export const UpdateUserRoleDTOSchema = z.object({
     role: z.string().nonempty(),
 }).strict()
+
+export const FilterPaginationUserSchema = z.object({
+    page: z.number().min(0).default(0),
+    pageSize: z.number().min(1).default(10),
+    email: z.string().default(""),
+    vat: z.string().default(""),
+    enabled:z.boolean().default(true),
+    verified:z.boolean().default(true),
+    role: z.array(z.string()).default([]),
+})

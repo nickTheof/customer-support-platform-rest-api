@@ -18,7 +18,8 @@ import {
     UserReadOnlyDTOSchema,
     UserUpdateDTOSchema,
     UserPatchDTOSchema,
-    UpdateUserRoleDTOSchema
+    UpdateUserRoleDTOSchema,
+    FilterPaginationUserSchema
 } from "../../schemas/user.schemas";
 import {z} from "zod/v4";
 
@@ -45,3 +46,4 @@ export type UserReadOnlyDTO = z.infer<typeof UserReadOnlyDTOSchema>;
 export type UserUpdateDTO = z.infer<typeof UserUpdateDTOSchema>;
 export type UserPatchDTO = z.infer<typeof UserPatchDTOSchema>;
 export type UpdateUserRoleDTO = z.infer<typeof UpdateUserRoleDTOSchema>;
+export type FilterPaginationUsersDTO = z.infer<typeof FilterPaginationUserSchema>

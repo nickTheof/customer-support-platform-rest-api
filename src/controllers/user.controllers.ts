@@ -1,9 +1,9 @@
 import catchAsync from "../core/utils/catchAsync";
 import {Request, Response, NextFunction} from "express";
 import userServices from "../services/user.services";
-import {sendResponse} from "../core/utils/rendResponses";
+import {sendPaginatedResponse, sendResponse} from "../core/utils/sendResponses";
 import {
-    BaseUserReadOnlyDTOWithVerification, UpdateUserRoleDTO,
+    BaseUserReadOnlyDTOWithVerification, FilterPaginationUsersDTO, UpdateUserRoleDTO,
     UserInsertDTO,
     UserReadOnlyDTO, UserUpdateDTO,
 } from "../core/types/zod-model.types";
@@ -21,6 +21,25 @@ import {AppServerException} from "../core/exceptions/app.exceptions";
 const getAllUsers = catchAsync(async (_req: Request, res: Response, _next: NextFunction) => {
     const users: UserReadOnlyDTO[] = await userServices.getAll();
     sendResponse<UserReadOnlyDTO>(users, 200, res);
+})
+
+
+/**
+ * Controller for retrieving users with dynamic filtering and pagination.
+ * Expects validated filters in res.locals.validatedBody.
+ * Calls the user service, and sends a paginated response including total count.
+ * Handles any errors through catchAsync middleware.
+ *
+ * @route POST /api/v1/users/filter
+ * @param {Request} _req - Express request object (not used, relies on validated body).
+ * @param {Response} res - Express response object for sending data.
+ * @param {NextFunction} _next - Express next middleware (handled by catchAsync).
+ * @returns {void}
+ */
+const getFilteredPaginatedUsers = catchAsync(async (_req: Request, res: Response, _next: NextFunction) => {
+    const filters: FilterPaginationUsersDTO = res.locals.validatedBody;
+    const {totalCount, data} = await userServices.getAllFilteredPaginated(filters);
+    sendPaginatedResponse<UserReadOnlyDTO>(data, totalCount, filters.page + 1, filters.pageSize, 200, res);
 })
 
 /**
@@ -122,6 +141,7 @@ const deleteUserById = catchAsync(async (req: Request, res: Response, _next: Nex
 
 export default {
     getAllUsers,
+    getFilteredPaginatedUsers,
     createUser,
     updateUserById,
     partialUpdateUserById,
