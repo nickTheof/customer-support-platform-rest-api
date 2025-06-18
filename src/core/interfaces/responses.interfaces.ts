@@ -4,6 +4,7 @@ export interface ResponseEntity<T> {
 }
 
 export interface PaginatedResponse<T> {
+    status: boolean;
     data: T[];
     totalItems: number;
     currentPage: number;
