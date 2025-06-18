@@ -39,6 +39,8 @@ export const ProfileInsertDTOSchema = z.object({
     address: AddressInsertDTOSchema.optional(),
 })
 
+export const ProfileReadOnlyDTOSchema = ProfileInsertDTOSchema.extend({})
+
 /**
  * userRegisterDTO will be used in the public route for register users with restricted authorities for CLIENT users
  */
@@ -53,7 +55,7 @@ export const UserRegisterDTOSchema = z.object({
  * userInsertDTO will be used by ADMIN users for creating users with custom roles and extended authorities
  */
 export const UserInsertDTOSchema = UserRegisterDTOSchema.extend({
-    role: objectIdSchema
+    role: z.string().nonempty()
 })
 
 export const PasswordRecoveryPathSchema = z.object({
@@ -91,3 +93,27 @@ export const BaseUserReadOnlyDTOSchemaWithRole = BaseUserReadOnlyDTOSchema.exten
 export const UserReadOnlyDTOSchemaWithVerificationToken = BaseUserReadOnlyDTOSchema.extend({
     verificationToken: z.string().nonempty()
 })
+
+export const UserReadOnlyDTOSchema = BaseUserReadOnlyDTOSchemaWithRole.extend({
+    vat: z.string().nonempty(),
+    profile: ProfileReadOnlyDTOSchema
+})
+
+export const UserIdPathSchema = z.object({
+    id: objectIdSchema
+})
+
+export const UserUpdateDTOSchema = z.object({
+    profile: ProfileInsertDTOSchema.strict(),
+    enabled:z.boolean(),
+    verified:z.boolean(),
+}).strict();
+
+export const UserPatchDTOSchema = UserUpdateDTOSchema.partial().refine(
+    data => Object.keys(data).length > 0,
+    { message: "At least one field must be provided." }
+);
+
+export const UpdateUserRoleDTOSchema = z.object({
+    role: z.string().nonempty(),
+}).strict()

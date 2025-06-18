@@ -13,7 +13,12 @@ import {
     BaseUserReadOnlyDTOSchema,
     UserReadOnlyDTOSchemaWithVerificationToken,
     BaseUserReadOnlyDTOSchemaWithRole,
-    VerifyAccountDTOSchema, UnlockAccountDTOSchema
+    VerifyAccountDTOSchema,
+    UnlockAccountDTOSchema,
+    UserReadOnlyDTOSchema,
+    UserUpdateDTOSchema,
+    UserPatchDTOSchema,
+    UpdateUserRoleDTOSchema
 } from "../../schemas/user.schemas";
 import {z} from "zod/v4";
 
@@ -36,3 +41,7 @@ export type BaseUserReadOnlyDTOWithRole = z.infer<typeof BaseUserReadOnlyDTOSche
 export type VerifyAccountDTO = z.infer<typeof VerifyAccountDTOSchema>;
 export type RoleReadOnlyDTO = z.infer<typeof RoleReadOnlyDTOSchema>;
 export type UnlockAccountDTO = z.infer<typeof UnlockAccountDTOSchema>;
+export type UserReadOnlyDTO = z.infer<typeof UserReadOnlyDTOSchema>;
+export type UserUpdateDTO = z.infer<typeof UserUpdateDTOSchema>;
+export type UserPatchDTO = z.infer<typeof UserPatchDTOSchema>;
+export type UpdateUserRoleDTO = z.infer<typeof UpdateUserRoleDTOSchema>;
