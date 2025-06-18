@@ -10,6 +10,14 @@ const getByRoleName = async(roleName: string) => {
     return doc;
 }
 
+const roleExists = async (roleName: string) => {
+    const count = await Role.find({
+        name: roleName
+    }).countDocuments();
+    return count > 0;
+}
+
 export default {
     getByRoleName,
+    roleExists,
 }
