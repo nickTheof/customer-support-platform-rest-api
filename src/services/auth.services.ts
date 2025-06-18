@@ -32,14 +32,15 @@ import {IRoleDocument} from "../core/interfaces/role.interfaces";
 const generateAccessToken = (user: UserTokenPayload): string => {
     const secret: jwt.Secret = env_config.JWT_SECRET;
     const options: jwt.SignOptions = {
+        subject: user.userId,
         expiresIn: env_config.JWT_EXPIRES,
     };
     return jwt.sign(user, secret, options);
 };
 
 /**
- * Validates a JWT access token and ensures the user exists and is active.
- * token - The JWT token to validate.
+ *  Validates a JWT access token and ensures the user exists, is verified, is enabled,
+ *  and has not changed their password since the token was issued.
  */
 const verifyAccessToken = async (token: string) => {
     const secret: jwt.Secret = env_config.JWT_SECRET;
@@ -54,6 +55,9 @@ const verifyAccessToken = async (token: string) => {
         }
         if (!currentUser.enabled) {
             throw new AppNotAuthorizedException("User", "User is disabled");
+        }
+        if (payload.iat && currentUser.passwordChangedAt.getTime() > payload.iat * 1000) {
+            throw new AppNotAuthorizedException("User", "The password has changed. Please login again.");
         }
         return payload;
     } catch (err: any) {
