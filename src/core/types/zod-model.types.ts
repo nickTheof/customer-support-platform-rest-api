@@ -5,7 +5,7 @@ import {
     RoleInsertDTOSchema,
     AuthorityInsertDTOSchema,
     RoleReadOnlyDTOSchema,
-    RolePatchDTOSchema, RoleUpdateDTOSchema
+    RolePatchDTOSchema, RoleUpdateDTOSchema, RoleReadOnlyDTOWithIdSchema
 } from "../../schemas/role.schemas";
 import {
     UserInsertDTOSchema,
@@ -31,6 +31,7 @@ export type RoleReadOnlyDTO = z.infer<typeof RoleReadOnlyDTOSchema>;
 export type RoleUpdateDTO = z.infer<typeof RoleUpdateDTOSchema>;
 export type RolePatchDTO = z.infer<typeof RolePatchDTOSchema>;
 export type AuthorityInsertDTO = z.infer<typeof AuthorityInsertDTOSchema>;
+export type RoleReadOnlyWithIdDTO= z.infer<typeof RoleReadOnlyDTOWithIdSchema>;
 
 
 

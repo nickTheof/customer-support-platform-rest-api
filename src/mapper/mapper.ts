@@ -2,16 +2,25 @@ import {IUserDocument, Profile} from "../core/interfaces/user.interfaces";
 import {
     BaseUserReadOnlyDTO,
     BaseUserReadOnlyDTOWithRole,
-    BaseUserReadOnlyDTOWithVerification, UserReadOnlyDTO
+    BaseUserReadOnlyDTOWithVerification, RoleReadOnlyDTO, RoleReadOnlyWithIdDTO, UserReadOnlyDTO
 } from "../core/types/zod-model.types";
 import {IRoleDocument} from "../core/interfaces/role.interfaces";
 
-const mapRoleToReadOnlyDTO = (role: IRoleDocument) => {
+const mapRoleToReadOnlyDTO = (role: IRoleDocument): RoleReadOnlyDTO => {
     return {
         name: role.name,
         authorities: role.authorities,
     }
 }
+
+const mapRoleToReadOnlyDTOWithID = (role: IRoleDocument): RoleReadOnlyWithIdDTO => {
+    return {
+        id: role._id.toString(),
+        name: role.name,
+        authorities: role.authorities,
+    }
+}
+
 
 const mapUserToBaseUserDTO = (user: IUserDocument): BaseUserReadOnlyDTO => {
     return {
@@ -49,6 +58,7 @@ const mapUserToReadOnlyDTO = (user: IUserDocument): UserReadOnlyDTO => {
 }
 
 export default {
+    mapRoleToReadOnlyDTOWithID,
     mapUserToBaseUserDTO,
     mapRoleToReadOnlyDTO,
     mapUserToBaseUserDTOWithVerificationCredentials,

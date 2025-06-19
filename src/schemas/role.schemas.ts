@@ -14,6 +14,10 @@ export const RoleInsertDTOSchema = z.object({
 
 export const RoleReadOnlyDTOSchema = RoleInsertDTOSchema.extend({});
 
+export const RoleReadOnlyDTOWithIdSchema = RoleInsertDTOSchema.extend({
+    id: objectIdSchema
+});
+
 export const RoleIdPathSchema = z.object({
     id: objectIdSchema
 })
