@@ -188,11 +188,10 @@ const updateUserRole = async (id: string, dto: UpdateUserRoleDTO): Promise<UserR
  * @throws AppObjectNotFoundException if user is not found.
  */
 const deleteUserById = async (id: string) => {
-    const doc = await User.findOne<IUserDocument>({_id: id});
+    const doc = await User.findOneAndDelete<IUserDocument>({_id: id});
     if (!doc) {
         throw new AppObjectNotFoundException("User", `User with id ${id} not found`);
     }
-    await User.deleteOne({_id: id});
     logger.info(`User with id ${id} deleted`);
 }
 
@@ -202,15 +201,14 @@ const deleteUserById = async (id: string) => {
  * @throws AppObjectNotFoundException if user is not found.
  */
 const deleteUserByEmail = async (email: string) => {
-    const doc = await User.findOne<IUserDocument>({email: email});
+    const doc = await User.findOneAndDelete<IUserDocument>({email: email});
     if (!doc) {
         throw new AppObjectNotFoundException("User", `User with email ${email} not found`);
     }
-    await User.deleteOne({email: email});
     logger.info(`User with email ${email} deleted`);
 }
 
-
+//TODO: Add Sorting
 /**
  * Builds the MongoDB aggregation pipeline for paginated and filtered user queries.
  * Supports filtering by email, VAT, enabled/verified status, and roles.
