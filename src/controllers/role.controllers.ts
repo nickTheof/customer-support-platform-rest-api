@@ -1,8 +1,14 @@
 import {Request, Response, NextFunction} from "express";
 import catchAsync from "../core/utils/catchAsync";
 import {RoleInsertDTO, RolePatchDTO, RoleReadOnlyWithIdDTO, RoleUpdateDTO} from "../core/types/zod-model.types";
-import roleServices from "../services/role.services";
+import {RoleService} from "../services/RoleService";
 import {sendResponse} from "../core/utils/sendResponses";
+import {IRoleRepository} from "../repository/IRoleRepository";
+import {RoleRepository} from "../repository/RoleRepository";
+
+const roleRepository: IRoleRepository = new RoleRepository();
+const roleServices = new RoleService(roleRepository);
+
 
 /**
  * Controller to get all roles.

@@ -1,8 +1,14 @@
 import {Request, Response, NextFunction} from "express";
 import {AppForbiddenException, AppNotAuthorizedException} from "../core/exceptions/app.exceptions";
-import authServices from "../services/auth.services";
+import {AuthService} from "../services/AuthService";
 import {AuthorityAction, ResourceAction} from "../core/interfaces/role.interfaces";
 import {UserTokenPayload} from "../core/interfaces/user.interfaces";
+import {RoleRepository} from "../repository/RoleRepository";
+import {UserRepository} from "../repository/UserRepository";
+
+const roleRepository = new RoleRepository();
+const userRepository = new UserRepository(roleRepository);
+const authServices = new AuthService(userRepository, roleRepository);
 
 /**
  *  * Express middleware that verifies a Bearer JWT token in the Authorization header.

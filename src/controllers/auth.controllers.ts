@@ -11,10 +11,17 @@ import {IUserDocument} from "../core/interfaces/user.interfaces";
 import {
     AppServerException
 } from "../core/exceptions/app.exceptions";
-import userServices from "../services/user.services";
-import authServices from "../services/auth.services";
+import {UserService} from "../services/UserService";
+import {AuthService} from "../services/AuthService";
 import emailServices from "../services/email.services";
+import {RoleRepository} from "../repository/RoleRepository";
+import {UserRepository} from "../repository/UserRepository";
 
+
+const roleRepository = new RoleRepository();
+const userRepository = new UserRepository(roleRepository);
+const userServices = new UserService(userRepository, roleRepository);
+const authServices = new AuthService(userRepository, roleRepository);
 /**
  * Logs in a user and returns a JWT access token on success.
  **/

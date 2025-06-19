@@ -2,9 +2,15 @@ import {IUserDocument, Profile} from "../core/interfaces/user.interfaces";
 import {
     BaseUserReadOnlyDTO,
     BaseUserReadOnlyDTOWithRole,
-    BaseUserReadOnlyDTOWithVerification, RoleReadOnlyDTO, RoleReadOnlyWithIdDTO, UserReadOnlyDTO
+    BaseUserReadOnlyDTOWithVerification,
+    RoleReadOnlyDTO,
+    RoleReadOnlyWithIdDTO,
+    RoleUpdateDTO,
+    UserPatchDTO,
+    UserReadOnlyDTO,
+    UserUpdateDTO
 } from "../core/types/zod-model.types";
-import {IRoleDocument} from "../core/interfaces/role.interfaces";
+import {AuthorityAction, IRoleDocument, ResourceAction} from "../core/interfaces/role.interfaces";
 
 const mapRoleToReadOnlyDTO = (role: IRoleDocument): RoleReadOnlyDTO => {
     return {
@@ -19,6 +25,16 @@ const mapRoleToReadOnlyDTOWithID = (role: IRoleDocument): RoleReadOnlyWithIdDTO 
         name: role.name,
         authorities: role.authorities,
     }
+}
+
+const mapRoleDtoToDocument = (dto: RoleUpdateDTO): Partial<IRoleDocument> =>{
+    return {
+        name: dto.name,
+        authorities: dto.authorities.map((auth) => ({
+            resource: auth.resource as ResourceAction,
+            actions: auth.actions as AuthorityAction[],
+        })),
+    };
 }
 
 
@@ -57,11 +73,26 @@ const mapUserToReadOnlyDTO = (user: IUserDocument): UserReadOnlyDTO => {
     }
 }
 
+const mapUserPatchDTOToDocument = (dto: UserPatchDTO): Partial<IUserDocument> => {
+    const updateFields: Partial<IUserDocument> = {};
+    if (dto.profile) updateFields["profile"] = dto.profile;
+    if (dto.enabled) updateFields["enabled"] = dto.enabled;
+    if (dto.verified) updateFields["verified"] = dto.verified;
+    return updateFields;
+}
+
+const mapUserUpdateDTOToDocument = (dto: UserUpdateDTO): Partial<IUserDocument> => {
+    return {...dto};
+}
+
 export default {
     mapRoleToReadOnlyDTOWithID,
     mapUserToBaseUserDTO,
     mapRoleToReadOnlyDTO,
     mapUserToBaseUserDTOWithVerificationCredentials,
     mapUserToBaseUserDTOWithRole,
-    mapUserToReadOnlyDTO
+    mapUserToReadOnlyDTO,
+    mapRoleDtoToDocument,
+    mapUserPatchDTOToDocument,
+    mapUserUpdateDTOToDocument
 }

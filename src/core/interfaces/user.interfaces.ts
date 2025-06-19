@@ -4,7 +4,6 @@ import {IAnnouncementDocument} from "./announcement.interfaces";
 import {IRoleDocument} from "./role.interfaces";
 import {RoleReadOnlyDTO} from "../types/zod-model.types";
 import {JwtPayload} from "jsonwebtoken";
-import {AggregationResult} from "./responses.interfaces";
 
 export interface Phone {
     type: string;
@@ -54,4 +53,3 @@ export interface UserTokenPayload extends JwtPayload{
     role: RoleReadOnlyDTO
 }
 
-export interface UserAggregationResult extends AggregationResult<IUserDocument> {}

@@ -1,6 +1,6 @@
 import catchAsync from "../core/utils/catchAsync";
 import {Request, Response, NextFunction} from "express";
-import userServices from "../services/user.services";
+import {UserService} from "../services/UserService";
 import {sendPaginatedResponse, sendResponse} from "../core/utils/sendResponses";
 import {
     BaseUserReadOnlyDTOWithVerification, FilterPaginationUsersDTO, UpdateUserRoleDTO,
@@ -11,8 +11,12 @@ import emailServices from "../services/email.services";
 import env_config from "../core/env_config";
 import {SMTPError} from "nodemailer/lib/smtp-connection";
 import {AppServerException} from "../core/exceptions/app.exceptions";
+import {RoleRepository} from "../repository/RoleRepository";
+import {UserRepository} from "../repository/UserRepository";
 
-
+const roleRepository = new RoleRepository();
+const userRepository = new UserRepository(roleRepository);
+const userServices = new UserService(userRepository, roleRepository);
 /**
  * Retrieves all users.
  * @route GET /api/v1/users
