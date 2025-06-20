@@ -1,6 +1,6 @@
 import {User} from "../models/user.model";
 import {IUserDocument} from "../core/interfaces/user.interfaces";
-import {IUserRepository} from "./IUserRepository";
+import {IUserRepository, TokenToRemove} from "../services/IUserRepository";
 import {now, PipelineStage} from "mongoose";
 import {PaginatedAggregationResult} from "../core/interfaces/responses.interfaces";
 import {AppObjectNotFoundException} from "../core/exceptions/app.exceptions";
@@ -88,13 +88,31 @@ export class UserRepository implements IUserRepository {
         }))
     }
 
-    async updateUserByEmailVerificationTokenNotExpired(email: string, verificationToken: string, user: Partial<IUserDocument>): Promise<IUserDocument | null> {
+    async removeUserTokensByEmail(email: string, tokens: TokenToRemove): Promise<IUserDocument | null> {
+        return (await User.findOneAndUpdate<IUserDocument>({
+            email: email,
+        }, {
+            $unset: tokens
+        }, {
+            new: true,
+            runValidators: true
+        }))
+    }
+
+    async updateUserByEmailVerificationTokenNotExpired(email: string, verificationToken: string): Promise<IUserDocument | null> {
         return (await User.findOneAndUpdate<IUserDocument>({
             email: email,
             verificationToken: verificationToken,
-            verificationTokenExpires: { $gt: now }
+            verificationTokenExpires: { $gt: now() }
         }, {
-            $set: user
+            $unset: {
+                verificationToken: 1,
+                verificationTokenExpires: 1
+            },
+            $set: {
+                enabled: true,
+                verified: true
+            }
         }, {
             new: true,
             runValidators: true
@@ -105,22 +123,32 @@ export class UserRepository implements IUserRepository {
         return (await User.findOneAndUpdate<IUserDocument>({
             email: email,
             passwordResetToken: passwordResetToken,
-            passwordResetTokenExpires: { $gt: now }
+            passwordResetTokenExpires: { $gt: now() }
         }, {
-            $set: user
+            $set: user,
+            $unset: {
+                passwordResetToken: 1,
+                passwordResetTokenExpires: 1
+            }
         }, {
             new: true,
             runValidators: true
         }))
     }
 
-    async updateUserByEmailEnableUserTokenNotExpired(email: string, enableUserToken: string, user: Partial<IUserDocument>): Promise<IUserDocument | null> {
+    async updateUserByEmailEnableUserTokenNotExpired(email: string, enableUserToken: string): Promise<IUserDocument | null> {
         return (await User.findOneAndUpdate<IUserDocument>({
             email: email,
             enableUserToken,
-            enableUserTokenExpires: { $gt: now }
+            enableUserTokenExpires: { $gt: now() }
         }, {
-            $set: user
+            $set: {
+                enabled: true,
+            },
+            $unset: {
+                enableUserToken: 1,
+                enableUserTokenExpires: 1
+            }
         }, {
             new: true,
             runValidators: true
@@ -148,55 +176,45 @@ export class UserRepository implements IUserRepository {
         const matchStage: Record<string, any> = {};
 
         if (filters.email) {
-            matchStage["email"] = { $regex: `^${filters.email}`, $options: "i" };
+            matchStage["email"] = {$regex: `^${filters.email}`, $options: "i"};
         }
         if (filters.vat) {
-            matchStage["vat"] = { $regex: `^${filters.vat}`, $options: "i" };
+            matchStage["vat"] = {$regex: `^${filters.vat}`, $options: "i"};
         }
         matchStage["enabled"] = filters.enabled;
         matchStage["verified"] = filters.verified;
-        const filterByRole = filters.role.length > 0;
-
-        const basePipeline: PipelineStage[] = [];
-
-        if (filterByRole) {
-            basePipeline.push(
-                {
-                    $lookup: {
-                        from: "roles",
-                        localField: "role",
-                        foreignField: "_id",
-                        as: "role",
-                    },
-                },
-                { $unwind: "$role" },
-                {
-                    $match: {
-                        ...matchStage,
-                        "role.name": { $in: filters.role },
-                    },
-                }
-            );
-        } else {
-            basePipeline.push({ $match: matchStage });
-        }
-
         const skip = filters.page * filters.pageSize;
-
         return [
-            ...basePipeline,
+            // Always populate the role first
+            {
+                $lookup: {
+                    from: "roles",
+                    localField: "role",
+                    foreignField: "_id",
+                    as: "role",
+                },
+            },
+            {$unwind: "$role"},
+            // Apply base match conditions
+            {$match: matchStage},
+            // Conditionally add role filtering if roles are specified
+            ...(filters.role.length > 0 ? [{
+                $match: {
+                    "role.name": {$in: filters.role}
+                }
+            }] : []),
             {
                 $facet: {
                     data: [
-                        { $skip: skip },
-                        { $limit: filters.pageSize },
+                        {$skip: skip},
+                        {$limit: filters.pageSize},
+                        // Add any additional projections or sorting here if needed
                     ],
                     totalCount: [
-                        { $count: "count" }
+                        {$count: "count"}
                     ],
                 },
             },
         ];
     }
-    
 }

@@ -22,7 +22,7 @@ import logger from "../core/utils/logger";
 import mapper from "../mapper/mapper";
 import {IRoleDocument} from "../core/interfaces/role.interfaces";
 import {IAuthService} from "./IAuthService";
-import {IUserRepository} from "../repository/IUserRepository";
+import {IUserRepository} from "./IUserRepository";
 import {IRoleRepository} from "../repository/IRoleRepository";
 
 
@@ -151,8 +151,6 @@ export class AuthService implements IAuthService {
         const doc = await this.userRepository.updateUserByEmailPasswordResetTokenNotExpired(data.email, data.token, {
             password: hashedPassword,
             passwordChangedAt: new Date(),
-            passwordResetToken: undefined,
-            passwordResetTokenExpires: undefined,
         });
 
         if (!doc) {
@@ -164,10 +162,10 @@ export class AuthService implements IAuthService {
             }
             if (user && user.passwordResetTokenExpires && user.passwordResetTokenExpires < now) {
                 // Clean up expired token
-                await this.userRepository.updateUserByEmail(data.email, {
-                    passwordResetToken: undefined,
-                    passwordResetTokenExpires: undefined,
-                });
+                await this.userRepository.removeUserTokensByEmail(data.email, {
+                    passwordResetToken: 1,
+                    passwordResetTokenExpires: 1
+                })
                 throw new AppNotAuthorizedException("Token", "Password reset token expired. Please start the recovery process again.");
             }
             throw new AppObjectNotFoundException("User", `User with email ${data.email} not found`);
@@ -179,17 +177,17 @@ export class AuthService implements IAuthService {
     }
 
     async rollbackEnableUserToken(email: string): Promise<void> {
-        await this.userRepository.updateUserByEmail(email, {
-            enableUserToken: undefined,
-            enableUserTokenExpires: undefined,
+        await this.userRepository.removeUserTokensByEmail(email, {
+            enableUserToken: 1,
+            enableUserTokenExpires: 1,
         })
         logger.info("Rollback enable user token for user with email " + email);
     }
 
     async rollbackRecoverPassword(email: string): Promise<void> {
-        await this.userRepository.updateUserByEmail(email, {
-            passwordResetToken: undefined,
-            passwordResetTokenExpires: undefined,
+        await this.userRepository.removeUserTokensByEmail(email, {
+            passwordResetToken: 1,
+            passwordResetTokenExpires: 1,
         })
         logger.info("Rollback Password recovery token for user with email " + email);
     }
@@ -200,11 +198,6 @@ export class AuthService implements IAuthService {
         const doc = await this.userRepository.updateUserByEmailEnableUserTokenNotExpired(
             data.email,
             data.token,
-            {
-                enabled: true,
-                enableUserToken: undefined,
-                enableUserTokenExpires: undefined
-            }
         );
         if (!doc) {
             // Check for error reason
@@ -214,9 +207,9 @@ export class AuthService implements IAuthService {
             }
             if (user && user.enableUserTokenExpires && user.enableUserTokenExpires < now) {
                 // Clean up expired token
-                await this.userRepository.updateUserByEmail(data.email, {
-                    enableUserToken: undefined,
-                    enableUserTokenExpires: undefined,
+                await this.userRepository.removeUserTokensByEmail(data.email, {
+                    enableUserToken: 1,
+                    enableUserTokenExpires: 1,
                 })
                 throw new AppNotAuthorizedException("Token", "Enable user reset token expired. Please start the recovery process again.");
             }
@@ -261,12 +254,7 @@ export class AuthService implements IAuthService {
         // Find user by email and valid (non-expired) token in one atomic operation
         const now = new Date();
 
-        const doc: IUserDocument | null = await this.userRepository.updateUserByEmailVerificationTokenNotExpired(dto.email, dto.token, {
-            verificationToken: undefined,
-            verificationTokenExpires: undefined,
-            enabled: true,
-            verified: true,
-        })
+        const doc: IUserDocument | null = await this.userRepository.updateUserByEmailVerificationTokenNotExpired(dto.email, dto.token)
 
         // Not found? Either wrong email, wrong token, or token expired.
         if (!doc) {

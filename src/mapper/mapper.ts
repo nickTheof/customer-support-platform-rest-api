@@ -76,8 +76,8 @@ const mapUserToReadOnlyDTO = (user: IUserDocument): UserReadOnlyDTO => {
 const mapUserPatchDTOToDocument = (dto: UserPatchDTO): Partial<IUserDocument> => {
     const updateFields: Partial<IUserDocument> = {};
     if (dto.profile) updateFields["profile"] = dto.profile;
-    if (dto.enabled) updateFields["enabled"] = dto.enabled;
-    if (dto.verified) updateFields["verified"] = dto.verified;
+    if (typeof dto.enabled === "boolean") updateFields["enabled"] = dto.enabled;
+    if (typeof dto.enabled === "boolean") updateFields["verified"] = dto.verified;
     return updateFields;
 }
 

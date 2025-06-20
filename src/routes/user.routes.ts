@@ -1,6 +1,6 @@
 import {Router} from "express";
 import {verifyResourceAuthority, verifyToken} from "../middlewares/auth.middlewares";
-import userController from "../controllers/user.controllers";
+import {UserController} from "../controllers/UserController";
 import {validateBody, validateParams} from "../middlewares/validator.middlewares";
 import {
     FilterPaginationUserSchema,
@@ -10,56 +10,61 @@ import {
     UserPatchDTOSchema,
     UserUpdateDTOSchema
 } from "../schemas/user.schemas";
+import {IUserService} from "../services/IUserService";
+import {IEmailService} from "../services/IEmailService";
 
-const router = Router();
-router.route("/")
-    .all(verifyToken)
-    .get(
-        verifyResourceAuthority("User", "READ"),
-        userController.getAllUsers
-    )
-    .post(
-        verifyResourceAuthority("User", "CREATE"),
-        validateBody(UserInsertDTOSchema, "User"),
-        userController.createUser
-    );
-router.post("/filtered",
-    verifyToken,
-    verifyResourceAuthority("User", "READ"),
-    validateBody(FilterPaginationUserSchema, "User"),
-    userController.getFilteredPaginatedUsers
-    );
-
-router.route("/:id")
-    .all(
+export function createUserRoutes(userService: IUserService, emailService: IEmailService) {
+    const router = Router();
+    const controller = new UserController(userService, emailService);
+    router.route("/")
+        .all(verifyToken)
+        .get(
+            verifyResourceAuthority("User", "READ"),
+            controller.getAllUsers
+        )
+        .post(
+            verifyResourceAuthority("User", "CREATE"),
+            validateBody(UserInsertDTOSchema, "User"),
+            controller.createUser
+        );
+    router.post("/filtered",
         verifyToken,
-        validateParams(UserIdPathSchema)
-    )
-    .get(
         verifyResourceAuthority("User", "READ"),
-        userController.getUserById
-    )
-    .put(
-        verifyResourceAuthority("User", "UPDATE"),
-        validateBody(UserUpdateDTOSchema, "User"),
-        userController.updateUserById
-    )
-    .patch(
-        verifyResourceAuthority("User", "UPDATE"),
-        validateBody(UserPatchDTOSchema, "User"),
-        userController.partialUpdateUserById
-    )
-    .delete(
-        verifyResourceAuthority("User", "DELETE"),
-        userController.deleteUserById
+        validateBody(FilterPaginationUserSchema, "User"),
+        controller.getFilteredPaginatedUsers
     );
 
-router.patch("/:id/change-role",
-    verifyToken,
-    verifyResourceAuthority("User", "UPDATE"),
-    validateParams(UserIdPathSchema),
-    validateBody(UpdateUserRoleDTOSchema, "User"),
-    userController.updateUserRole
-)
+    router.route("/:id")
+        .all(
+            verifyToken,
+            validateParams(UserIdPathSchema)
+        )
+        .get(
+            verifyResourceAuthority("User", "READ"),
+            controller.getUserById
+        )
+        .put(
+            verifyResourceAuthority("User", "UPDATE"),
+            validateBody(UserUpdateDTOSchema, "User"),
+            controller.updateUserById
+        )
+        .patch(
+            verifyResourceAuthority("User", "UPDATE"),
+            validateBody(UserPatchDTOSchema, "User"),
+            controller.partialUpdateUserById
+        )
+        .delete(
+            verifyResourceAuthority("User", "DELETE"),
+            controller.deleteUserById
+        );
 
-export default router;
+    router.patch("/:id/change-role",
+        verifyToken,
+        verifyResourceAuthority("User", "UPDATE"),
+        validateParams(UserIdPathSchema),
+        validateBody(UpdateUserRoleDTOSchema, "User"),
+        controller.updateUserRole
+    )
+
+    return router;
+}

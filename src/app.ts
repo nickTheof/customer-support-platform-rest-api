@@ -6,10 +6,7 @@ import hpp from "hpp";
 import limiter from "./middlewares/limiter.middleware";
 import {AppObjectNotFoundException} from "./core/exceptions/app.exceptions";
 import errorHandler from "./middlewares/error.middlewares";
-import heathRouter from "./routes/healthcheck.routes";
-import authRouter from "./routes/auth.routes";
-import userRouter from "./routes/user.routes";
-import roleRouter from "./routes/user.routes";
+import {roleRoutes, userRoutes, authRoutes, healthCheckRoutes} from "./container";
 
 const app = express();
 // Use helmet for setting security headers
@@ -41,10 +38,10 @@ app.use(
 );
 
 app.use("/", limiter);
-app.use(`/api/${env_config.API_VERSION}`, heathRouter)
-app.use(`/api/${env_config.API_VERSION}/auth`, authRouter)
-app.use(`/api/${env_config.API_VERSION}/users`, userRouter)
-app.use(`/api/${env_config.API_VERSION}/roles`, roleRouter)
+app.use(`/api/${env_config.API_VERSION}`, healthCheckRoutes)
+app.use(`/api/${env_config.API_VERSION}/auth`, authRoutes)
+app.use(`/api/${env_config.API_VERSION}/users`, userRoutes)
+app.use(`/api/${env_config.API_VERSION}/roles`, roleRoutes)
 
 app.all("/{*splat}", (req: Request, _res: Response, next) => {
     next(new AppObjectNotFoundException(`Uri`, `Can't find the ${req.originalUrl} on the server`));

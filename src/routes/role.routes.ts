@@ -2,7 +2,8 @@ import {Router} from "express";
 import {verifyResourceAuthority, verifyToken} from "../middlewares/auth.middlewares";
 import {validateBody, validateParams} from "../middlewares/validator.middlewares";
 import {RoleIdPathSchema, RoleInsertDTOSchema, RolePatchDTOSchema, RoleUpdateDTOSchema} from "../schemas/role.schemas";
-import roleControllers from "../controllers/role.controllers";
+import  {RoleController} from "../controllers/RoleController";
+import {IRoleService} from "../services/IRoleService";
 
 /**
  * Role Management API
@@ -10,42 +11,44 @@ import roleControllers from "../controllers/role.controllers";
  * - Supports CRUD with full validation
  * - All endpoints require authentication
  */
+export function createRoleRoutes(roleService: IRoleService) {
+    const router = Router();
+    const controller = new RoleController(roleService);
 
-const router = Router();
+    router.route("/")
+        .all(verifyToken)
+        .get(
+            verifyResourceAuthority("Role", "READ"),
+            controller.getAllRoles
+        )
+        .post(
+            verifyResourceAuthority("Role", "CREATE"),
+            validateBody(RoleInsertDTOSchema, "Role"),
+            controller.createRole
+        )
 
-router.route("/")
-    .all(verifyToken)
-    .get(
-        verifyResourceAuthority("Role", "READ"),
-        roleControllers.getAllRoles
-    )
-    .post(
-        verifyResourceAuthority("Role", "CREATE"),
-        validateBody(RoleInsertDTOSchema, "Role"),
-        roleControllers.createRole
-    )
+    router.route("/:id")
+        .all(
+            verifyToken,
+            validateParams(RoleIdPathSchema)
+        )
+        .get(
+            verifyResourceAuthority("Role", "READ"),
+            controller.getRoleById
+        )
+        .put(
+            verifyResourceAuthority("Role", "UPDATE"),
+            validateBody(RoleUpdateDTOSchema, "Role"),
+            controller.updateRoleById
+        )
+        .patch(
+            verifyResourceAuthority("Role", "UPDATE"),
+            validateBody(RolePatchDTOSchema, "Role"),
+            controller.partialUpdateRoleById
+        )
+        .delete(
+            verifyResourceAuthority("Role", "DELETE"),
+            controller.deleteRoleById)
 
-router.route("/:id")
-    .all(
-        verifyToken,
-        validateParams(RoleIdPathSchema)
-    )
-    .get(
-        verifyResourceAuthority("Role", "READ"),
-        roleControllers.getRoleById
-    )
-    .put(
-        verifyResourceAuthority("Role", "UPDATE"),
-        validateBody(RoleUpdateDTOSchema, "Role"),
-        roleControllers.updateRoleById
-    )
-    .patch(
-        verifyResourceAuthority("Role", "UPDATE"),
-        validateBody(RolePatchDTOSchema, "Role"),
-        roleControllers.partialUpdateRoleById
-    )
-    .delete(
-        verifyResourceAuthority("Role", "DELETE"),
-        roleControllers.deleteRoleById)
-
-export default router;
+    return router;
+}
