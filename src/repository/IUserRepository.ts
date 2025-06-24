@@ -15,6 +15,7 @@ export type TokenToRemove = | {
 
 export interface IUserRepository {
     findAll(): Promise<IUserDocument[]>;
+    findAllByRoleId(roleId: string): Promise<IUserDocument[]>;
     findById(id: string): Promise<IUserDocument | null>;
     findByVat(vat: string): Promise<IUserDocument | null>;
     findByEmail(email: string): Promise<IUserDocument | null>;

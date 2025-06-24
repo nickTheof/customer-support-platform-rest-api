@@ -22,7 +22,7 @@ import logger from "../core/utils/logger";
 import mapper from "../mapper/mapper";
 import {IRoleDocument} from "../core/interfaces/role.interfaces";
 import {IAuthService} from "./IAuthService";
-import {IUserRepository} from "./IUserRepository";
+import {IUserRepository} from "../repository/IUserRepository";
 import {IRoleRepository} from "../repository/IRoleRepository";
 
 

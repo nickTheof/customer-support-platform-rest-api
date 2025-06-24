@@ -10,7 +10,7 @@ import {
 } from "../core/types/zod-model.types";
 import {IUserDocument} from "../core/interfaces/user.interfaces";
 import {IUserService} from "./IUserService";
-import {IUserRepository} from "./IUserRepository";
+import {IUserRepository} from "../repository/IUserRepository";
 import {IRoleRepository} from "../repository/IRoleRepository";
 
 export class UserService implements IUserService {
