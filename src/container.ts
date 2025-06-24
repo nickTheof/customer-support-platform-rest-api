@@ -12,7 +12,7 @@ import {EmailService} from "./services/EmailService";
 
 const roleRepository = new RoleRepository();
 const userRepository = new UserRepository(roleRepository);
-const roleService = new RoleService(roleRepository);
+const roleService = new RoleService(roleRepository, userRepository);
 const userService = new UserService(userRepository, roleRepository);
 const authService = new AuthService(userRepository, roleRepository);
 const emailService = new EmailService();

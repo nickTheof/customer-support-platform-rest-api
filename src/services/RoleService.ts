@@ -1,15 +1,20 @@
 import {Role} from "../models/role.model";
-import {AppObjectAlreadyExistsException, AppObjectNotFoundException} from "../core/exceptions/app.exceptions";
+import {
+    AppInvalidArgumentException,
+    AppObjectAlreadyExistsException,
+    AppObjectNotFoundException
+} from "../core/exceptions/app.exceptions";
 import {RoleInsertDTO, RolePatchDTO, RoleReadOnlyWithIdDTO, RoleUpdateDTO} from "../core/types/zod-model.types";
 import {Authority, IRoleDocument} from "../core/interfaces/role.interfaces";
 import mapper from "../mapper/mapper";
 import logger from "../core/utils/logger";
 import {IRoleService} from "./IRoleService";
 import {IRoleRepository} from "../repository/IRoleRepository";
+import {IUserRepository} from "../repository/IUserRepository";
 
 
 export class RoleService implements IRoleService {
-    constructor(private roleRepository: IRoleRepository) {}
+    constructor(private roleRepository: IRoleRepository, private userRepository: IUserRepository) {}
 
     async getAll(): Promise<RoleReadOnlyWithIdDTO[]> {
         const roles = await this.roleRepository.findAll();
@@ -73,6 +78,10 @@ export class RoleService implements IRoleService {
     }
 
     async deleteById(id: string): Promise<void> {
+        const usersWithRole = await this.userRepository.findAllByRoleId(id);
+        if (usersWithRole.length > 0) {
+            throw new AppInvalidArgumentException("Role", 'Cannot delete role. It is assigned to one or more users.')
+        }
         const role = await this.roleRepository.deleteById(id);
         if (!role) {
             throw new AppObjectNotFoundException("Role", `Role with id ${id} not found`);

@@ -1,6 +1,6 @@
 import {User} from "../models/user.model";
 import {IUserDocument} from "../core/interfaces/user.interfaces";
-import {IUserRepository, TokenToRemove} from "../services/IUserRepository";
+import {IUserRepository, TokenToRemove} from "./IUserRepository";
 import {now, PipelineStage} from "mongoose";
 import {PaginatedAggregationResult} from "../core/interfaces/responses.interfaces";
 import {AppObjectNotFoundException} from "../core/exceptions/app.exceptions";
@@ -13,6 +13,12 @@ export class UserRepository implements IUserRepository {
 
     async findAll(): Promise<IUserDocument[]> {
         return (await User.find<IUserDocument>());
+    }
+
+    async findAllByRoleId(roleId: string): Promise<IUserDocument[]> {
+        return (await User.find<IUserDocument>({
+            role: roleId,
+        }))
     }
 
     async findById(id: string): Promise<IUserDocument | null> {
