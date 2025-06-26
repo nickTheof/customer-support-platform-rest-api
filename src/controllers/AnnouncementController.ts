@@ -14,59 +14,80 @@ import {AnnouncementInsertDTOSchema, AnnouncementUpdateDTOSchema} from "../schem
 import {AppValidationException} from "../core/exceptions/app.exceptions";
 import {ZodError} from "zod/v4";
 
+
+/**
+* Announcement Controller
+*
+*  Handles all announcement-related operations including:
+ *  - Creating announcements with attachments
+* - Managing announcement lifecycle
+* - Handling file uploads and validation
+*/
 export class AnnouncementController {
     constructor(private announcementService: IAnnouncementService) {
     }
 
-    createAnnouncement = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    /**
+     * Create a new announcement with attachments
+     */
+    createAnnouncement = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
         const user = res.locals.user as UserTokenPayload;
-        // Handle files uploading. If all goes right, we proceed
-        try {
-            await uploadFiles()(req, res);
-        } catch (err) {
-            return next(err);
-        }
+        // Process file uploads
+        await uploadFiles()(req, res);
+
         const dto = req.body as AnnouncementInsertDTO;
+        // Validate request body
         try {
             AnnouncementInsertDTOSchema.parse(dto)
         } catch (err) {
-            return next(new AppValidationException("Announcement", err as ZodError));
+            throw new AppValidationException("Announcement", err as ZodError);
         }
         const files = req.files as Express.Multer.File[] || [];
         const savedAnnouncementDTO: AnnouncementReadOnlyDTO = await this.announcementService.createAnnouncement(dto, files, user)
         sendResponse<AnnouncementReadOnlyDTO>(savedAnnouncementDTO, 201, res)
     });
 
+    /**
+     * Get all announcements
+     */
     getAllAnnouncements = catchAsync(async (_req: Request, res: Response) => {
         const data: AnnouncementAttachInfoDTO[] = await this.announcementService.getAllAnnouncements();
         sendResponse<AnnouncementAttachInfoDTO>(data, 200, res)
     })
 
+    /**
+     * Get an announcement by ID
+     */
     getAnnouncementById = catchAsync(async (req: Request, res: Response) => {
         const announcementId = req.params.id;
         const data: AnnouncementAttachInfoDTO = await this.announcementService.getAnnouncementById(announcementId);
         sendResponse<AnnouncementAttachInfoDTO>(data, 200, res)
     })
 
+    /**
+     * Delete an announcement by ID
+     */
     deleteAnnouncement = catchAsync(async (req: Request, res: Response) => {
         const announcementId = req.params.id;
         await this.announcementService.deleteAnnouncementById(announcementId);
         sendResponse(null, 204, res)
     })
 
-    updateAnnouncement = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    /**
+     * Update an announcement with attachments
+     */
+    updateAnnouncement = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
         const announcementId = req.params.id;
-        // Handle files uploading. If all goes right, we proceed
-        try {
-            await uploadFiles()(req, res);
-        } catch (err) {
-            return next(err);
-        }
+
+        // Process file uploads
+        await uploadFiles()(req, res);
+
+        // Validate request body
         const dto = req.body as AnnouncementUpdateDTO;
         try {
             AnnouncementUpdateDTOSchema.parse(dto)
         } catch (err) {
-            return next(new AppValidationException("Announcement", err as ZodError));
+            throw new AppValidationException("Announcement", err as ZodError);
         }
         const files = req.files as Express.Multer.File[] || [];
         const data: AnnouncementReadOnlyDTO = await this.announcementService.updateAnnouncement(announcementId, dto, files);

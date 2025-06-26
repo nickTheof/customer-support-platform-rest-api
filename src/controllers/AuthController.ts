@@ -16,12 +16,25 @@ import {IUserService} from "../services/IUserService";
 import {IAuthService} from "../services/IAuthService";
 import {IEmailService} from "../services/IEmailService";
 
-export class AuthController {
+/**
+ * Authentication Controller
+ *
+ * Handles all authentication-related operations including:
+ * - User login and registration
+ * - Email verification
+ * - Password recovery and reset
+ * - Account locking and unlocking
+ *
+ */
+ export class AuthController {
     constructor(private userService: IUserService,
                 private authService: IAuthService,
                 private emailService: IEmailService) {
     }
 
+    /**
+     * User login
+     * */
     login = catchAsync(async (req: Request, res: Response) => {
         const data: UserLoginDTO = req.body;
         const token = await this.authService.loginUser(data);
@@ -31,6 +44,9 @@ export class AuthController {
         })
     })
 
+    /**
+     * User registration - Controller for public Route
+     * */
     register = catchAsync(async (req: Request, res: Response) => {
         const data: UserRegisterDTO = req.body;
         const savedUser: BaseUserReadOnlyDTOWithVerification = await this.authService.registerUser(data);
@@ -49,6 +65,9 @@ export class AuthController {
         })
     })
 
+    /**
+     * Account verification
+     */
     verifyAccount = catchAsync(async (req: Request, res: Response) => {
         const data: VerifyAccountDTO = req.body;
         await this.authService.verifyAccount(data);
@@ -58,6 +77,9 @@ export class AuthController {
         });
     })
 
+    /**
+     * Password recovery request
+     */
     recoverPassword = catchAsync(async (req: Request, res: Response) => {
         const {email} = req.params;
         const updatedUser: IUserDocument | null = await this.authService.recoverPassword(email);
@@ -79,6 +101,9 @@ export class AuthController {
         });
     })
 
+    /**
+     * Password reset
+     */
     resetPassword = catchAsync(async (req: Request, res: Response) => {
         const data: ResetPasswordDTO = req.body;
         await this.authService.resetPasswordAfterRecovery(data);
@@ -88,6 +113,9 @@ export class AuthController {
         });
     })
 
+    /**
+     * Account unlock request
+     */
     requestUnlock = catchAsync(async (req: Request, res: Response) => {
         const {email} = req.params;
         const updatedUser: IUserDocument | null = await this.authService.requestUnlock(email);
@@ -109,6 +137,9 @@ export class AuthController {
         });
     })
 
+    /**
+     * Account unlock
+     */
     unlockAccount = catchAsync(async (req: Request, res: Response) => {
         const data: UnlockAccountDTO = req.body;
         await this.authService.unlockAccount(data);
