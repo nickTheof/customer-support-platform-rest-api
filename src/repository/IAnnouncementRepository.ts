@@ -1,9 +1,10 @@
 import {IAnnouncementDocument} from "../core/interfaces/announcement.interfaces";
+import {ClientSession} from "mongoose";
 
 export interface IAnnouncementRepository {
     getAll(): Promise<IAnnouncementDocument[]>;
     getById(id: string): Promise<IAnnouncementDocument | null>;
-    create(announcement: Partial<IAnnouncementDocument>): Promise<IAnnouncementDocument>;
+    create(announcement: Partial<IAnnouncementDocument>, session?: ClientSession): Promise<IAnnouncementDocument>;
     updateById(id: string, announcement: Partial<IAnnouncementDocument>): Promise<IAnnouncementDocument | null>;
     deleteById(id: string): Promise<IAnnouncementDocument | null>;
 }

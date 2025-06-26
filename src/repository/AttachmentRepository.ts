@@ -1,10 +1,11 @@
 import {IAttachmentRepository} from "./IAttachmentRepository";
 import {IAttachmentDocument} from "../core/interfaces/attachment.interfaces";
 import {Attachment} from "../models/attachment.model";
+import {ClientSession} from "mongoose";
 
 export class AttachmentRepository implements IAttachmentRepository {
-    async create(attachment: Partial<IAttachmentDocument>): Promise<IAttachmentDocument> {
-        return (await Attachment.create(attachment))
+    async create(attachment: Partial<IAttachmentDocument>, session?: ClientSession): Promise<IAttachmentDocument> {
+        return (await Attachment.create([attachment], {session}))[0]
     }
 
     async deleteById(id: string): Promise<IAttachmentDocument | null> {

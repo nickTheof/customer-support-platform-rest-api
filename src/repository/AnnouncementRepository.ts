@@ -1,10 +1,11 @@
 import {IAnnouncementRepository} from "./IAnnouncementRepository";
 import {IAnnouncementDocument} from "../core/interfaces/announcement.interfaces";
 import {Announcement} from "../models/announcement.model";
+import {ClientSession} from "mongoose";
 
 export class AnnouncementRepository implements IAnnouncementRepository {
-    async create(announcement: Partial<IAnnouncementDocument>): Promise<IAnnouncementDocument> {
-        return (await Announcement.create(announcement))
+    async create(announcement: Partial<IAnnouncementDocument>, session?:ClientSession): Promise<IAnnouncementDocument> {
+        return (await Announcement.create([announcement], {session: session}))[0]
     }
 
     async deleteById(id: string): Promise<IAnnouncementDocument | null> {
