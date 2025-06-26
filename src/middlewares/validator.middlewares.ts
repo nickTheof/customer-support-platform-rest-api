@@ -3,6 +3,15 @@ import {z, ZodError, ZodType} from "zod/v4";
 import {AppValidationException} from "../core/exceptions/app.exceptions";
 import {ResourceAction} from "../core/interfaces/role.interfaces";
 
+/**
+ * Zod Validation Middleware
+ *
+ * Provides type-safe validation for:
+ * - Request bodies
+ * - Query parameters
+ * - Route parameters
+ *
+ */
 export const validateBody = <T>(schema: ZodType<T, any, any>, model: ResourceAction | string) => (
     req: Request,
     res: Response,

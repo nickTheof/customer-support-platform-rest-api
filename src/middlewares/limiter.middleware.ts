@@ -2,6 +2,20 @@ import {rateLimit} from 'express-rate-limit';
 import env_config from "../core/env_config";
 import logger from "../core/utils/logger";
 
+/**
+ * Global Rate Limiter Middleware
+ *
+ * Protects the API against brute force and DDoS attacks by:
+ * - Limiting requests per window per user/IP
+ * - Providing clear error messages
+ * - Supporting both authenticated and anonymous users
+ * - Excluding health checks from limits
+ *
+ * Configuration:
+ * - Window: Defined in minutes (converted to milliseconds)
+ * - Max Requests: Maximum allowed per window
+ * - Headers: Compliant with IETF draft standard
+ */
 const limiter = rateLimit({
     windowMs: env_config.RATE_LIMIT_WINDOW_MINUTES*60*1000,
     limit: env_config.RATE_LIMIT_MAX_REQUESTS,
