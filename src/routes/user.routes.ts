@@ -13,9 +13,24 @@ import {
 import {IUserService} from "../services/IUserService";
 import {IEmailService} from "../services/IEmailService";
 
+/**
+ * Creates and configures user management routes
+ *
+ * Provides a complete CRUD API for user management with:
+ * - JWT authentication
+ * - Role-Based Access Control (RBAC)
+ * - Request validation
+ * - Email notifications
+ * - Pagination and filtering support
+ *
+ * All endpoints require valid JWT and appropriate permissions.
+ *
+ */
 export function createUserRoutes(userService: IUserService, emailService: IEmailService) {
+    // Initialize router instance
     const router = Router();
     const controller = new UserController(userService, emailService);
+
     router.route("/")
         .all(verifyToken)
         .get(
@@ -27,6 +42,7 @@ export function createUserRoutes(userService: IUserService, emailService: IEmail
             validateBody(UserInsertDTOSchema, "User"),
             controller.createUser
         );
+
     router.post("/filtered",
         verifyToken,
         verifyResourceAuthority("User", "READ"),

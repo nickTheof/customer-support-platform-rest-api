@@ -12,17 +12,58 @@ import {IUserService} from "../services/IUserService";
 import {IAuthService} from "../services/IAuthService";
 import {IEmailService} from "../services/IEmailService";
 
+/**
+ * Creates and configures authentication routes
+ *
+ * This router handles all authentication-related endpoints including:
+ * - User registration and login
+ * - Password recovery and reset
+ * - Account verification
+ * - Account locking and unlocking
+ *
+ * All routes are protected with request validation middleware that ensures:
+ * - Proper request body structure
+ * - Valid parameter formats
+ * - Data type validation
+ */
 export function createAuthRoutes(userService: IUserService, authService: IAuthService, emailService: IEmailService) {
     const router = Router();
     const controller = new AuthController(userService, authService, emailService);
 
-    router.post("/login", validateBody(UserLoginDTOSchema, USER_MODEL_NAME), controller.login)
-    router.post("/register", validateBody(UserRegisterDTOSchema, USER_MODEL_NAME), controller.register)
-    router.post("/password-recovery/:email", validateParams(PasswordRecoveryPathSchema), controller.recoverPassword)
-    router.post("/reset-password", validateBody(ResetPasswordDTOSchema, "ResetPassword"), controller.resetPassword)
-    router.post("/verify-account", validateBody(VerifyAccountDTOSchema, "VerifyAccount"), controller.verifyAccount)
-    router.post("/request-unlock/:email", validateParams(RequestUnlockPathSchema), controller.requestUnlock)
-    router.post("/unlock", validateBody(UnlockAccountDTOSchema, "UnlockAccount"), controller.unlockAccount)
+    router.post("/login",
+        validateBody(UserLoginDTOSchema, USER_MODEL_NAME),
+        controller.login
+    )
+
+    router.post("/register",
+        validateBody(UserRegisterDTOSchema, USER_MODEL_NAME),
+        controller.register
+    )
+
+    router.post("/password-recovery/:email",
+        validateParams(PasswordRecoveryPathSchema),
+        controller.recoverPassword
+    )
+
+    router.post("/reset-password",
+        validateBody(ResetPasswordDTOSchema, "ResetPassword"),
+        controller.resetPassword
+    )
+
+    router.post("/verify-account",
+        validateBody(VerifyAccountDTOSchema, "VerifyAccount"),
+        controller.verifyAccount
+    )
+
+    router.post("/request-unlock/:email",
+        validateParams(RequestUnlockPathSchema),
+        controller.requestUnlock
+    )
+
+    router.post("/unlock",
+        validateBody(UnlockAccountDTOSchema, "UnlockAccount"),
+        controller.unlockAccount
+    )
 
     return router;
 }

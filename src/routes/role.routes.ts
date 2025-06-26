@@ -2,16 +2,23 @@ import {Router} from "express";
 import {verifyResourceAuthority, verifyToken} from "../middlewares/auth.middlewares";
 import {validateBody, validateParams} from "../middlewares/validator.middlewares";
 import {RoleIdPathSchema, RoleInsertDTOSchema, RolePatchDTOSchema, RoleUpdateDTOSchema} from "../schemas/role.schemas";
-import  {RoleController} from "../controllers/RoleController";
+import {RoleController} from "../controllers/RoleController";
 import {IRoleService} from "../services/IRoleService";
 
 /**
- * Role Management API
- * - Secured by JWT and RBAC
- * - Supports CRUD with full validation
- * - All endpoints require authentication
+ * Creates and configures role management routes
+ *
+ * This router provides a complete CRUD API for role management with:
+ * - JWT authentication
+ * - Role-Based Access Control (RBAC)
+ * - Request validation
+ * - Comprehensive error handling
+ *
+ * All endpoints require valid JWT and appropriate permissions.
+ *
  */
 export function createRoleRoutes(roleService: IRoleService) {
+    // Initialize a router instance
     const router = Router();
     const controller = new RoleController(roleService);
 
