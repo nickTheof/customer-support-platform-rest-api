@@ -15,14 +15,28 @@ import {AnnouncementRepository} from "./repository/AnnouncementRepository";
 import {AttachmentRepository} from "./repository/AttachmentRepository";
 import {MongooseUnitOfWork} from "./core/transactions/MongooseUnitOfWork";
 
+/**
+ * Dependency Injection Container
+ *
+ * Initializes all repositories, services, and routes with their dependencies.
+ * This serves as the composition root for the application.
+ */
+
+
+// Initialize repositories
 const roleRepository = new RoleRepository();
 const userRepository = new UserRepository(roleRepository);
 const announcementRepository = new AnnouncementRepository();
 const attachmentRepository = new AttachmentRepository();
+
+// Initialize Unit of Work for transaction management
+const uow = new MongooseUnitOfWork();
+
+// Initialize services with their required dependencies
 const roleService = new RoleService(roleRepository, userRepository);
 const userService = new UserService(userRepository, roleRepository);
 const authService = new AuthService(userRepository, roleRepository);
-const uow = new MongooseUnitOfWork();
+
 const announcementService = new AnnouncementService(
     announcementRepository,
     attachmentRepository,
@@ -31,11 +45,18 @@ const announcementService = new AnnouncementService(
 );
 const emailService = new EmailService();
 
+// Create route handlers by injecting required services
 const healthCheckRoutes = createHealthCheckRoutes();
-// Create routes with injected dependencies
 const authRoutes = createAuthRoutes(userService, authService, emailService);
 const roleRoutes = createRoleRoutes(roleService);
 const userRoutes = createUserRoutes(userService, emailService);
 const announcementRoutes = createAnnouncementRoutes(announcementService);
 
-export { roleRoutes, userRoutes, authRoutes, healthCheckRoutes, announcementRoutes };
+// Export routes to be used by the application
+export {
+    roleRoutes,
+    userRoutes,
+    authRoutes,
+    healthCheckRoutes,
+    announcementRoutes
+};
