@@ -13,6 +13,7 @@ import {createAnnouncementRoutes} from "./routes/announcement.routes";
 import {AnnouncementService} from "./services/AnnouncementService";
 import {AnnouncementRepository} from "./repository/AnnouncementRepository";
 import {AttachmentRepository} from "./repository/AttachmentRepository";
+import {MongooseUnitOfWork} from "./core/transactions/MongooseUnitOfWork";
 
 const roleRepository = new RoleRepository();
 const userRepository = new UserRepository(roleRepository);
@@ -21,7 +22,13 @@ const attachmentRepository = new AttachmentRepository();
 const roleService = new RoleService(roleRepository, userRepository);
 const userService = new UserService(userRepository, roleRepository);
 const authService = new AuthService(userRepository, roleRepository);
-const announcementService = new AnnouncementService(announcementRepository, attachmentRepository, userRepository);
+const uow = new MongooseUnitOfWork();
+const announcementService = new AnnouncementService(
+    announcementRepository,
+    attachmentRepository,
+    userRepository,
+    uow
+);
 const emailService = new EmailService();
 
 const healthCheckRoutes = createHealthCheckRoutes();

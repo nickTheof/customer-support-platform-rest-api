@@ -1,6 +1,6 @@
 import {IAnnouncementService} from "./IAnnouncementService";
 import {AnnouncementAttachInfoDTO, AnnouncementInsertDTO, AnnouncementReadOnlyDTO} from "../core/types/zod-model.types";
-import mongoose, {Types} from "mongoose";
+import {Types} from "mongoose";
 import {IAnnouncementRepository} from "../repository/IAnnouncementRepository";
 import {IAttachmentRepository} from "../repository/IAttachmentRepository";
 import {IUserRepository} from "../repository/IUserRepository";
@@ -11,19 +11,21 @@ import logger from "../core/utils/logger";
 import mapper from "../mapper/mapper";
 import {IAnnouncementDocument} from "../core/interfaces/announcement.interfaces";
 import {IAttachmentDocument} from "../core/interfaces/attachment.interfaces";
+import {IUnitOfWork} from "../core/transactions/IUnitOfWork";
 
 export class AnnouncementService implements IAnnouncementService {
     constructor(private announcementRepository: IAnnouncementRepository,
                 private attachmentRepository: IAttachmentRepository,
-                private userRepository: IUserRepository) {
+                private userRepository: IUserRepository,
+                private unitOfWork: IUnitOfWork) {
     }
 
 
     async createAnnouncement(dto: AnnouncementInsertDTO, files: Express.Multer.File[], user: UserTokenPayload): Promise<AnnouncementReadOnlyDTO> {
         const savedFileIds: Types.ObjectId[] = [];
         const filePaths = files.map(f => f.path);
-        const session = await mongoose.startSession();
-        session.startTransaction();
+        await this.unitOfWork.start();
+        const session = this.unitOfWork.getSession();
         try {
             for (const file of files) {
                 const doc = await this.attachmentRepository.create(
@@ -48,13 +50,11 @@ export class AnnouncementService implements IAnnouncementService {
 
             await this.userRepository.addAnnouncement(user.userId, newAnnouncement._id, session);
             await newAnnouncement.populate("authorId");
-            await session.commitTransaction();
-            await session.endSession();
+            await this.unitOfWork.commit();
             logger.info(`Announcement with id ${newAnnouncement._id} created successfully.`);
             return mapper.mapAnnouncementToReadOnly(newAnnouncement);
         } catch (err) {
-            await session.abortTransaction();
-            await session.endSession();
+            await this.unitOfWork.rollback();
 
             // Clean up files
             await this.cleanUpFiles(filePaths);
@@ -77,8 +77,8 @@ export class AnnouncementService implements IAnnouncementService {
 
     async deleteAnnouncementById(id: string) : Promise<void> {
         const filePathsToDelete: string[] = [];
-        const session = await mongoose.startSession();
-        session.startTransaction();
+        await this.unitOfWork.start();
+        const session = this.unitOfWork.getSession();
         try {
             const toDelete = await this.announcementRepository.deleteById(id, session);
             if (!toDelete) {
@@ -92,15 +92,13 @@ export class AnnouncementService implements IAnnouncementService {
                 }
             }
             await this.userRepository.removeAnnouncement(toDelete.authorId.toString(), id, session);
-            await session.commitTransaction();
-            await session.endSession();
+            await this.unitOfWork.commit();
 
             // Delete files AFTER transaction success
             await this.cleanUpFiles(filePathsToDelete);
 
         } catch (err) {
-            await session.abortTransaction();
-            await session.endSession();
+            await this.unitOfWork.rollback();
             throw err;
         }
     }
@@ -114,8 +112,8 @@ export class AnnouncementService implements IAnnouncementService {
         const savedFileIds: Types.ObjectId[] = [];
         const oldFilePathsToDelete: string[] = [];
 
-        const session = await mongoose.startSession();
-        session.startTransaction();
+        await this.unitOfWork.start();
+        const session = this.unitOfWork.getSession();
 
         try {
             // Fetch the existing announcement
@@ -149,8 +147,7 @@ export class AnnouncementService implements IAnnouncementService {
             }, session) as IAnnouncementDocument;
 
             await updatedAnnouncement.populate("authorId");
-            await session.commitTransaction();
-            await session.endSession();
+            await this.unitOfWork.commit();
 
             // Cleanup old files only after DB changes are committed
             await this.cleanUpFiles(oldFilePathsToDelete);
@@ -159,8 +156,7 @@ export class AnnouncementService implements IAnnouncementService {
             return mapper.mapAnnouncementToReadOnly(updatedAnnouncement);
 
         } catch (err) {
-            await session.abortTransaction();
-            await session.endSession();
+            await this.unitOfWork.rollback();
 
             // Cleanup new uploaded files if transaction fails
             await this.cleanUpFiles(newFilePaths);
