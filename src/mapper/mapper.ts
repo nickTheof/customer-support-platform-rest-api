@@ -1,5 +1,6 @@
 import {IUserDocument, Profile} from "../core/interfaces/user.interfaces";
 import {
+    AnnouncementReadOnlyDTO,
     BaseUserReadOnlyDTO,
     BaseUserReadOnlyDTOWithRole,
     BaseUserReadOnlyDTOWithVerification,
@@ -11,6 +12,7 @@ import {
     UserUpdateDTO
 } from "../core/types/zod-model.types";
 import {AuthorityAction, IRoleDocument, ResourceAction} from "../core/interfaces/role.interfaces";
+import {IAnnouncementDocument} from "../core/interfaces/announcement.interfaces";
 
 const mapRoleToReadOnlyDTO = (role: IRoleDocument): RoleReadOnlyDTO => {
     return {
@@ -85,6 +87,18 @@ const mapUserUpdateDTOToDocument = (dto: UserUpdateDTO): Partial<IUserDocument> 
     return {...dto};
 }
 
+const mapAnnouncementToReadOnly = (dto: IAnnouncementDocument): AnnouncementReadOnlyDTO => {
+    return {
+        attachments: dto.attachments?.map(att => att.toString()),
+        author: {
+            email: (dto.authorId as IUserDocument).email
+        },
+        description: dto.description,
+        title: dto.title
+
+    }
+}
+
 export default {
     mapRoleToReadOnlyDTOWithID,
     mapUserToBaseUserDTO,
@@ -94,5 +108,6 @@ export default {
     mapUserToReadOnlyDTO,
     mapRoleDtoToDocument,
     mapUserPatchDTOToDocument,
-    mapUserUpdateDTOToDocument
+    mapUserUpdateDTOToDocument,
+    mapAnnouncementToReadOnly,
 }
