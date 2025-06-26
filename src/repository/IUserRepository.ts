@@ -1,6 +1,7 @@
 import {IUserDocument} from "../core/interfaces/user.interfaces";
 import {FilterPaginationUsersDTO} from "../core/types/zod-model.types";
 import {PaginatedAggregationResult} from "../core/interfaces/responses.interfaces";
+import {ClientSession, Types} from "mongoose";
 
 export type TokenToRemove = | {
     passwordResetToken: number;
@@ -16,7 +17,7 @@ export type TokenToRemove = | {
 export interface IUserRepository {
     findAll(): Promise<IUserDocument[]>;
     findAllByRoleId(roleId: string): Promise<IUserDocument[]>;
-    findById(id: string): Promise<IUserDocument | null>;
+    findById(id: string, session?:ClientSession): Promise<IUserDocument | null>;
     findByVat(vat: string): Promise<IUserDocument | null>;
     findByEmail(email: string): Promise<IUserDocument | null>;
     isValidEmail(email: string): Promise<boolean>;
@@ -32,4 +33,5 @@ export interface IUserRepository {
     updateUserByEmailPasswordResetTokenNotExpired(email: string, passwordResetToken: string, user: Partial<IUserDocument>): Promise<IUserDocument | null>;
     updateUserByEmailEnableUserTokenNotExpired(email: string, enableUserToken: string): Promise<IUserDocument | null>;
     findFilteredPaginatedUsersWithAggregationResult(filters: FilterPaginationUsersDTO): Promise<PaginatedAggregationResult<IUserDocument>>;
+    addAnnouncement(userId: string, announcementId: Types.ObjectId, session?: ClientSession): Promise<IUserDocument | null>
 }

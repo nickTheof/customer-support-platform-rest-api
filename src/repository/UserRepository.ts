@@ -1,7 +1,7 @@
 import {User} from "../models/user.model";
 import {IUserDocument} from "../core/interfaces/user.interfaces";
 import {IUserRepository, TokenToRemove} from "./IUserRepository";
-import {now, PipelineStage} from "mongoose";
+import {ClientSession, now, PipelineStage, Types} from "mongoose";
 import {PaginatedAggregationResult} from "../core/interfaces/responses.interfaces";
 import {AppObjectNotFoundException} from "../core/exceptions/app.exceptions";
 import {FilterPaginationUsersDTO} from "../core/types/zod-model.types";
@@ -21,8 +21,8 @@ export class UserRepository implements IUserRepository {
         }))
     }
 
-    async findById(id: string): Promise<IUserDocument | null> {
-        return (await User.findById<IUserDocument>(id));
+    async findById(id: string, session?: ClientSession): Promise<IUserDocument | null> {
+        return (await User.findOne<IUserDocument>({ _id: id }, null, { session }));
     }
 
     async findByEmail(email: string): Promise<IUserDocument | null> {
@@ -168,6 +168,19 @@ export class UserRepository implements IUserRepository {
         const [result] = await User.aggregate<PaginatedAggregationResult<IUserDocument>>(pipeline).exec();
         return result;
     }
+
+    async addAnnouncement(userId: string, announcementId: Types.ObjectId, session?: ClientSession): Promise<IUserDocument | null> {
+        return (await User.findByIdAndUpdate(userId, {
+            $push: {
+                announcements: {
+                    $each: [announcementId],
+                    $position: 0
+                }
+            }
+        }, {session, new: true, runValidators: true}))
+    }
+
+
 
 
     /**
