@@ -180,6 +180,14 @@ export class UserRepository implements IUserRepository {
         }, {session, new: true, runValidators: true}))
     }
 
+    async removeAnnouncement(userId: string, announcementId: string, session?: ClientSession): Promise<IUserDocument | null> {
+        return (await User.findByIdAndUpdate(userId, {
+            $pull: { announcements: announcementId }
+        }, {session, new: true, runValidators: true}))
+    }
+
+
+
 
 
 

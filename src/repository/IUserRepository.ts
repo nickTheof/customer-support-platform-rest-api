@@ -34,4 +34,5 @@ export interface IUserRepository {
     updateUserByEmailEnableUserTokenNotExpired(email: string, enableUserToken: string): Promise<IUserDocument | null>;
     findFilteredPaginatedUsersWithAggregationResult(filters: FilterPaginationUsersDTO): Promise<PaginatedAggregationResult<IUserDocument>>;
     addAnnouncement(userId: string, announcementId: Types.ObjectId, session?: ClientSession): Promise<IUserDocument | null>
+    removeAnnouncement(userId: string, announcementId: string, session?: ClientSession): Promise<IUserDocument | null>
 }

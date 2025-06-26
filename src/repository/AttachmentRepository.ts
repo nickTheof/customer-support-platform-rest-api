@@ -8,8 +8,8 @@ export class AttachmentRepository implements IAttachmentRepository {
         return (await Attachment.create([attachment], {session}))[0]
     }
 
-    async deleteById(id: string): Promise<IAttachmentDocument | null> {
-        return (await Attachment.findByIdAndDelete(id))
+    async deleteById(id: string, session?: ClientSession): Promise<IAttachmentDocument | null> {
+        return (await Attachment.findByIdAndDelete(id, {session}));
     }
 
     async getAll(): Promise<IAttachmentDocument[]> {

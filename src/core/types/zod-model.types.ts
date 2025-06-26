@@ -1,5 +1,9 @@
 import {SaveAttachmentSchema} from "../../schemas/attachment.schemas";
-import {AnnouncementInsertDTOSchema, AnnouncementReadOnlyDTOSchema} from "../../schemas/announcement.schemas";
+import {
+    AnnouncementAttachInfoDTOSchema,
+    AnnouncementInsertDTOSchema,
+    AnnouncementReadOnlyDTOSchema, AnnouncementUpdateDTOSchema
+} from "../../schemas/announcement.schemas";
 import {TicketInsertDTOSchema, CommentInsertDTOSchema} from "../../schemas/ticket.schemas";
 import {
     RoleInsertDTOSchema,
@@ -60,7 +64,9 @@ export type SaveAttachmentDTO = z.infer<typeof SaveAttachmentSchema>;
 
 //ANNOUNCEMENT DTO TYPES
 export type AnnouncementInsertDTO = z.infer<typeof AnnouncementInsertDTOSchema>;
+export type AnnouncementUpdateDTO = z.infer<typeof AnnouncementUpdateDTOSchema>;
 export type AnnouncementReadOnlyDTO = z.infer<typeof AnnouncementReadOnlyDTOSchema>;
+export type AnnouncementAttachInfoDTO = z.infer<typeof AnnouncementAttachInfoDTOSchema>;
 
 //TICKET DTO TYPES
 export type TicketInsertDTO = z.infer<typeof TicketInsertDTOSchema>;

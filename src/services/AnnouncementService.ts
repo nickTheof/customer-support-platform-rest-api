@@ -1,19 +1,21 @@
 import {IAnnouncementService} from "./IAnnouncementService";
-import {AnnouncementInsertDTO, AnnouncementReadOnlyDTO} from "../core/types/zod-model.types";
+import {AnnouncementAttachInfoDTO, AnnouncementInsertDTO, AnnouncementReadOnlyDTO} from "../core/types/zod-model.types";
 import mongoose, {Types} from "mongoose";
 import {IAnnouncementRepository} from "../repository/IAnnouncementRepository";
 import {IAttachmentRepository} from "../repository/IAttachmentRepository";
 import {IUserRepository} from "../repository/IUserRepository";
 import fs from "fs/promises";
-import { AppServerException} from "../core/exceptions/app.exceptions";
+import {AppObjectNotFoundException, AppServerException} from "../core/exceptions/app.exceptions";
 import { UserTokenPayload} from "../core/interfaces/user.interfaces";
 import logger from "../core/utils/logger";
 import mapper from "../mapper/mapper";
+import {IAnnouncementDocument} from "../core/interfaces/announcement.interfaces";
+import {IAttachmentDocument} from "../core/interfaces/attachment.interfaces";
 
 export class AnnouncementService implements IAnnouncementService {
     constructor(private announcementRepository: IAnnouncementRepository,
                 private attachmentRepository: IAttachmentRepository,
-                private userRepository: IUserRepository,) {
+                private userRepository: IUserRepository) {
     }
 
 
@@ -55,14 +57,126 @@ export class AnnouncementService implements IAnnouncementService {
             await session.endSession();
 
             // Clean up files
-            await Promise.all(filePaths.map(async path => {
-                try {
-                    await fs.unlink(path);
-                } catch {
-                    throw new AppServerException("AppServerError", "Fail to delete uploads")
-                }
-            }));
+            await this.cleanUpFiles(filePaths);
             throw new AppServerException("AnnouncementCreationFailure", "Fail to create a new announcement");
         }
+    }
+
+    async getAllAnnouncements(): Promise<AnnouncementAttachInfoDTO[]> {
+        const data: IAnnouncementDocument[] = await this.announcementRepository.getAllPopulatedAnnouncements();
+        return data.map(doc => mapper.mapAnnouncementToReadOnlyWithAttachInfo(doc))
+    }
+
+    async getAnnouncementById(id: string) : Promise<AnnouncementAttachInfoDTO> {
+        const data: IAnnouncementDocument | null = await this.announcementRepository.getByIdPopulated(id)
+        if (!data) {
+            throw new AppObjectNotFoundException("Announcement", `Announcement with id ${id} not found`);
+        }
+        return mapper.mapAnnouncementToReadOnlyWithAttachInfo(data)
+    }
+
+    async deleteAnnouncementById(id: string) : Promise<void> {
+        const filePathsToDelete: string[] = [];
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        try {
+            const toDelete = await this.announcementRepository.deleteById(id, session);
+            if (!toDelete) {
+                throw new AppObjectNotFoundException("Announcement", `Announcement with id ${id} not found`);
+            }
+            logger.info(`Announcement with id ${id} deleted successfully.`);
+            if (toDelete.attachments) {
+                for (const attachment of toDelete.attachments) {
+                    filePathsToDelete.push((attachment as IAttachmentDocument).filePath);
+                    await this.attachmentRepository.deleteById(attachment._id.toString(), session);
+                }
+            }
+            await this.userRepository.removeAnnouncement(toDelete.authorId.toString(), id, session);
+            await session.commitTransaction();
+            await session.endSession();
+
+            // Delete files AFTER transaction success
+            await this.cleanUpFiles(filePathsToDelete);
+
+        } catch (err) {
+            await session.abortTransaction();
+            await session.endSession();
+            throw err;
+        }
+    }
+
+    async updateAnnouncement(
+        id: string,
+        dto: AnnouncementInsertDTO,
+        files: Express.Multer.File[],
+    ): Promise<AnnouncementReadOnlyDTO> {
+        const newFilePaths: string[] = files.map(f => f.path);
+        const savedFileIds: Types.ObjectId[] = [];
+        const oldFilePathsToDelete: string[] = [];
+
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+            // Fetch the existing announcement
+            const existingAnnouncement = await this.announcementRepository.getByIdPopulated(id, session);
+            if (!existingAnnouncement) {
+                throw new AppObjectNotFoundException("Announcement", `Announcement with id ${id} not found`);
+            }
+            // Save new attachments (if any)
+            for (const file of files) {
+                const doc = await this.attachmentRepository.create({
+                    fileName: file.originalname,
+                    savedName: file.filename,
+                    filePath: file.path,
+                    contentType: file.mimetype,
+                    fileExtension: file.originalname.split(".").pop()
+                }, session);
+                savedFileIds.push(doc._id);
+            }
+            // Track old attachments to delete later
+            if (existingAnnouncement.attachments) {
+                for (const att of existingAnnouncement.attachments) {
+                    oldFilePathsToDelete.push((att as IAttachmentDocument).filePath);
+                    await this.attachmentRepository.deleteById(att._id.toString(), session);
+                }
+            }
+            // Update announcement fields
+            const updatedAnnouncement = await this.announcementRepository.updateById(id, {
+                title: dto.title,
+                description: dto.description,
+                attachments: savedFileIds
+            }, session) as IAnnouncementDocument;
+
+            await updatedAnnouncement.populate("authorId");
+            await session.commitTransaction();
+            await session.endSession();
+
+            // Cleanup old files only after DB changes are committed
+            await this.cleanUpFiles(oldFilePathsToDelete);
+
+            logger.info(`Announcement with id ${id} updated successfully.`);
+            return mapper.mapAnnouncementToReadOnly(updatedAnnouncement);
+
+        } catch (err) {
+            await session.abortTransaction();
+            await session.endSession();
+
+            // Cleanup new uploaded files if transaction fails
+            await this.cleanUpFiles(newFilePaths);
+            throw new AppServerException("AnnouncementUpdateFailure", "Failed to update the announcement");
+        }
+    }
+
+
+    private async cleanUpFiles(filePathsToDelete: string[]): Promise<void> {
+        await Promise.all(filePathsToDelete.map(async path => {
+            try {
+                await fs.unlink(path);
+            } catch (e) {
+                logger.warn(`Failed to delete file: ${path}`);
+                throw new AppServerException("AppServerError", "Fail to delete uploads")
+            }
+        }));
     }
 }

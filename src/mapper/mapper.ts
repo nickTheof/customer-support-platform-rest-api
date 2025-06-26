@@ -1,5 +1,6 @@
 import {IUserDocument, Profile} from "../core/interfaces/user.interfaces";
 import {
+    AnnouncementAttachInfoDTO,
     AnnouncementReadOnlyDTO,
     BaseUserReadOnlyDTO,
     BaseUserReadOnlyDTOWithRole,
@@ -13,6 +14,7 @@ import {
 } from "../core/types/zod-model.types";
 import {AuthorityAction, IRoleDocument, ResourceAction} from "../core/interfaces/role.interfaces";
 import {IAnnouncementDocument} from "../core/interfaces/announcement.interfaces";
+import {IAttachmentDocument} from "../core/interfaces/attachment.interfaces";
 
 const mapRoleToReadOnlyDTO = (role: IRoleDocument): RoleReadOnlyDTO => {
     return {
@@ -89,7 +91,28 @@ const mapUserUpdateDTOToDocument = (dto: UserUpdateDTO): Partial<IUserDocument> 
 
 const mapAnnouncementToReadOnly = (dto: IAnnouncementDocument): AnnouncementReadOnlyDTO => {
     return {
+        _id: dto._id.toString(),
         attachments: dto.attachments?.map(att => att.toString()),
+        author: {
+            email: (dto.authorId as IUserDocument).email
+        },
+        description: dto.description,
+        title: dto.title
+
+    }
+}
+
+const mapAttachmentToReadonly = (att: IAttachmentDocument) => {
+    return {
+        _id: att._id.toString(),
+        fileName: att.fileName,
+    }
+}
+
+const mapAnnouncementToReadOnlyWithAttachInfo = (dto: IAnnouncementDocument): AnnouncementAttachInfoDTO => {
+    return {
+        _id: dto._id.toString(),
+        attachments: (dto.attachments ?? []).map(att => mapAttachmentToReadonly(att as IAttachmentDocument)),
         author: {
             email: (dto.authorId as IUserDocument).email
         },
@@ -110,4 +133,5 @@ export default {
     mapUserPatchDTOToDocument,
     mapUserUpdateDTOToDocument,
     mapAnnouncementToReadOnly,
+    mapAnnouncementToReadOnlyWithAttachInfo
 }
